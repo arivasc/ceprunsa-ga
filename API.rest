@@ -1,0 +1,9 @@
+
+
+
+## listar usuarios adding token in header
+
+
+## Lista infor user adding token in header
+GET http://localhost:8000/api/gestion-userCeprunsa/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMxMjA0NzI4LCJpYXQiOjE3MzEyMDQ0MjgsImp0aSI6ImY2OTg2MThkYzcxOTQyNzZhY2U3MzllZTQxZDhmYWY4IiwidXNlcl9pZCI6MX0.1Agbzib1D8xvpYcdn-dzpBebjs5yX8Lj7ZI7jyGY7uc
