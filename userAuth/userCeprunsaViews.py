@@ -46,7 +46,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
   @extend_schema(
     summary="Listar usuarios Ceprunsa",
     description="Lista todos los usuarios Ceprunsa con algunos datos personales y roles",
-    responses={200: UserCeprunsaSimpleListSerializer},
+    responses={200: UserCeprunsaSimpleListSerializer(many=True)},
     methods=['GET']
   )
   def get(self, request):

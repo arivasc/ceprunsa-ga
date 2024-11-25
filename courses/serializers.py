@@ -1,6 +1,12 @@
 from rest_framework import serializers
 from courses.models import Course
 
+class CourseSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Course
+    fields = ['id', 'name', 'description', 'coordinator', 'registerState']
+
+
 class DetailedCourseSerializer(serializers.ModelSerializer):
   
   coordinatorId = serializers.IntegerField(source='coordinator.id', read_only=True)
