@@ -19,10 +19,10 @@ class CourseCreateView(APIView):
       courses = Course.objects.all()
     else:
       filter = request.query_params.get('filter', 'A').upper()
-      courses = Course.objects.filter(registerState=filter)
+      courses = Course.objects.select_related('coordinator__userceprunsapersonalinfo').filter(registerState=filter)
     
     serializer = DetailedCourseSerializer(courses, many=True)
-    return Response(serializer.data)
+    return Response(serializer.data, status=status.HTTP_200_OK)
   
 class CourseDetailView(APIView):
   def get_object(self, pk):
