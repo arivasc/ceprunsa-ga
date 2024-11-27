@@ -11,11 +11,11 @@ from drf_spectacular.utils import extend_schema
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.openapi import OpenApiParameter
 
-#--------------------------------------------------------------
+#==============================================================================
 #API para listar y crear usuarios
-#--------------------------------------------------------------
+#==============================================================================
 class UserCeprunsaSimpleListDetailedCreateView(APIView):
-  #permission_classes = [ IsAuthenticated ]
+  permission_classes = [ IsAuthenticated ]
   
   serializer_class = UserCeprunsaRolesAndInfosCreateSerializer
   
@@ -59,7 +59,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
 #API para ver, editar y eliminar usuarios por id
 #==============================================================================
 class UserCeprunsaDetailView(APIView):
-  #permission_classes = [IsAuthenticated]
+  permission_classes = [IsAuthenticated]
   
   
   serializer_class = UserCeprunsaRolesAndInfosCreateSerializer
@@ -87,8 +87,24 @@ class UserCeprunsaDetailView(APIView):
     return Response(userCeprunsaSerialiser, status=status.HTTP_200_OK)
 
 
-
-
+#==============================================================================
+#API para devolver true si el usuario existe
+#==============================================================================
+class UserCeprunsaExistsView(APIView):
+  #permission_classes = [IsAuthenticated]
+  @extend_schema(
+    summary="Verificar si el usuario Ceprunsa existe",
+    description="Verifica si el usuario Ceprunsa existe por email",
+    responses={200: {'exists': True}},
+    #parameters=[OpenApiParameter(name='email', type=OpenApiTypes.STR, description='Email del usuario Ceprunsa')]
+  )
+  def get(self, request, email):
+    try:
+      #email = request.query_params.get('email')
+      userCeprunsa = UserCeprunsa.objects.get(email=email)
+      return Response({'exists': True}, status=status.HTTP_200_OK)
+    except ObjectDoesNotExist:
+      return Response({'exists': False}, status=status.HTTP_200_OK)
 
 
 #api para listar y crear usuarios

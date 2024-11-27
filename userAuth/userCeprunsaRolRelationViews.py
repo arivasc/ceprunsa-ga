@@ -6,6 +6,30 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 
+
+
+class UserCeprunsaRoleUpdateView(APIView):
+  
+  
+  def get_object(self, pk):
+    try:
+      return UserCeprunsa.objects.get(id=pk)
+    except ObjectDoesNotExist:
+      return None
+    
+  def get(self, request, pk):
+    user = self.get_object(pk)
+    if not user:
+      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = UserCeprunsaRolRelationSerializer(user)
+    return Response(serializer.data)
+
+
+
+
+
+
+
 class UserCeprunsaRolRelationListCreateView(APIView):
   #permission_classes = [IsAuthenticated]
   

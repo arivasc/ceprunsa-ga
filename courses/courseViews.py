@@ -13,7 +13,7 @@ from drf_spectacular.utils import extend_schema
 #==============================================================================
 
 class CourseCreateView(APIView):
-  #permission_classes = [IsAuthenticated]
+  permission_classes = [IsAuthenticated]
   
   @extend_schema(
     summary="Crear curso",
@@ -43,9 +43,14 @@ class CourseCreateView(APIView):
     
     serializer = DetailedCourseSerializer(courses, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+#==============================================================================
+#API para ver, editar y eliminar cursos por id
+#==============================================================================
   
 class CourseDetailView(APIView):
-  #permission_classes = [IsAuthenticated]
+  permission_classes = [IsAuthenticated]
   
   def get_object(self, pk):
     try:
@@ -91,5 +96,6 @@ class CourseDetailView(APIView):
     course = self.get_object(pk)
     if not course:
       return Response({'message': 'Curso no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-    course.delete()
+    course.registerState = '*'
+    course.save()
     return Response({'message': 'Curso eliminado'}, status=status.HTTP_204_NO_CONTENT)

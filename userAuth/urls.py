@@ -1,7 +1,7 @@
 from django.urls import path
 from userAuth.googleAuthViews import GoogleAuthView, RefreshTokenView, LogOutView
 from userAuth.rolViews import RoleCeprunsaListCreateView, RoleCeprunsaDetailView
-from userAuth.userCeprunsaViews import UserCeprunsaDetailView, UserCeprunsaSimpleListDetailedCreateView
+from userAuth.userCeprunsaViews import UserCeprunsaDetailView, UserCeprunsaSimpleListDetailedCreateView, UserCeprunsaExistsView
 from userAuth.userCeprunsaRolRelationViews import UserCeprunsaRolRelationListCreateView, UserCeprunsaRolRelationDetailView
 #from userAuth.userCeprunsaCreateViews import UserCeprunsaCreateDetailView
 
@@ -13,6 +13,9 @@ urlpatterns = [
   #rutas para listar y crear usuarios
   path('users', UserCeprunsaSimpleListDetailedCreateView.as_view(), name='users'),
   path('users/<int:pk>', UserCeprunsaDetailView.as_view(), name='user-detail'),
+  
+  #ruta para consultar usuario por email y retornar true si existe
+  path('users/exists/<str:email>', UserCeprunsaExistsView.as_view(), name='user-exists'),
   
   #nuevo endpoint para crear usuario con roles, personalInfo y payment
   #path('users/create', UserCeprunsaCreateDetailView.as_view(), name='user-create'),

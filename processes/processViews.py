@@ -53,7 +53,7 @@ class ProcessListCreateView(APIView):
 #==============================================================================
 
 class ProcessDetailView(APIView):
-  #permission_classes = [IsAuthenticated]
+  permission_classes = [IsAuthenticated]
   
   #método para obtener un proceso por id reusable
   def get_object(self, pk):

@@ -192,6 +192,9 @@ class UserCeprunsaRolRelationSerializer(serializers.ModelSerializer):
     return value
 
 
+
+
+
 #=============================================================================
 
 class RoleCeprunsaSerializer(serializers.ModelSerializer):
