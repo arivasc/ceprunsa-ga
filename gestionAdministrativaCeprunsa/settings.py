@@ -179,4 +179,4 @@ AUTH_USER_MODEL = 'userAuth.UserCeprunsa'
 GOOGLE_CLIENT_ID = getenv('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = getenv('GOOGLE_CLIENT_SECRET')
 # CORS
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000","http://localhost:5173"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000","http://localhost:5173","https://ceprunsa-ga-front.vercel.app/"]
