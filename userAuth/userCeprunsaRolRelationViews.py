@@ -55,7 +55,6 @@ class UserCerpunsaRoleRelacionManagementView(APIView):
     # Update roles and activate them
     if currentRoles.exists():
       for role, roleId in zip(currentRoles, rolesToAdd):
-        print("role", role, "roleId", roleId)
         role.idRole = RoleCeprunsa.objects.get(id=roleId)
         role.registerState = 'A'
         role.save()
