@@ -60,7 +60,7 @@ class UserCeprunsaDetailSerializer(serializers.ModelSerializer):
     fields = ['id', 'email', 'roles', 'personalInfo', 'paymentInfo']
 
   def get_roles(self, obj):
-    role_relations = UserCeprunsaRoleRelation.objects.filter(idUser=obj)
+    role_relations = UserCeprunsaRoleRelation.objects.filter(idUser=obj, registerState='A')
     roles = RoleCeprunsa.objects.filter(id__in=role_relations.values_list('idRole', flat=True))
     return RoleCeprunsaSerializer(roles, many=True).data
 
@@ -114,7 +114,7 @@ class UserCeprunsaSimpleListSerializer(serializers.ModelSerializer):
       ]
   
   def get_roles(self, obj):
-    role_relations = UserCeprunsaRoleRelation.objects.filter(idUser=obj)
+    role_relations = UserCeprunsaRoleRelation.objects.filter(idUser=obj, registerState='A')
     roles = RoleCeprunsa.objects.filter(id__in=role_relations.values_list('idRole', flat=True))
     return RoleCeprunsaSimpleSerializer(roles, many=True).data
 
@@ -172,7 +172,7 @@ class UserCeprunsaResumeSerializer(serializers.ModelSerializer):
 
 
 #=============================================================================
-#Serializadores de roles con usuarios
+#Serializadores de relacion de roles con usuarios
 #=============================================================================
 
 class UserCeprunsaRolRelationSerializer(serializers.ModelSerializer):
@@ -192,7 +192,16 @@ class UserCeprunsaRolRelationSerializer(serializers.ModelSerializer):
     return value
 
 
-
+#=============================================================================
+#Serializador de solicitud de asignacion de roles a un usuario
+#=============================================================================
+class UserRoleAssignmentRequestSerializer(serializers.Serializer):
+    roles = serializers.ListField(
+        child=serializers.IntegerField(),
+        min_length=1,
+        max_length=2,
+        help_text="Lista de IDs de roles (mínimo 1, máximo 2)"
+    )
 
 
 #=============================================================================

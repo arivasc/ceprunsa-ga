@@ -2,7 +2,7 @@ from django.urls import path
 from userAuth.googleAuthViews import GoogleAuthView, RefreshTokenView, LogOutView
 from userAuth.rolViews import RoleCeprunsaListCreateView, RoleCeprunsaDetailView
 from userAuth.userCeprunsaViews import UserCeprunsaDetailView, UserCeprunsaSimpleListDetailedCreateView, UserCeprunsaExistsView
-from userAuth.userCeprunsaRolRelationViews import UserCeprunsaRolRelationListCreateView, UserCeprunsaRolRelationDetailView
+from userAuth.userCeprunsaRolRelationViews import UserCeprunsaRolRelationListCreateView, UserCeprunsaRolRelationDetailView, UserCerpunsaRoleRelacionManagementView
 #from userAuth.userCeprunsaCreateViews import UserCeprunsaCreateDetailView
 
 urlpatterns = [
@@ -24,6 +24,8 @@ urlpatterns = [
   path('users/refreshtoken', RefreshTokenView.as_view(), name='refresh-token'),
   path('users/logout', LogOutView.as_view(), name='logout'),
   
+  #ruta para manejar los roles a un usuario
+  path('user-rol-management/<int:pk>', UserCerpunsaRoleRelacionManagementView.as_view(), name='user-rol-management'),
   
   path('user-rol-relations', UserCeprunsaRolRelationListCreateView.as_view(), name='user-rol-relations'),
   path('user-rol-relations/<int:pk>', UserCeprunsaRolRelationDetailView.as_view(), name='user-rol-relation-detail'),  

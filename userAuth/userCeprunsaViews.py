@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from userAuth.serializers import UserCeprunsaSimpleSerializer, UserCeprunsaRolesAndInfosCreateSerializer, UserCeprunsaDetailSerializer, UserCeprunsaSimpleListSerializer
+from userAuth.serializers import UserCeprunsaRolesAndInfosCreateSerializer, UserCeprunsaDetailSerializer, UserCeprunsaSimpleListSerializer
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -59,7 +59,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
 #API para ver, editar y eliminar usuarios por id
 #==============================================================================
 class UserCeprunsaDetailView(APIView):
-  permission_classes = [IsAuthenticated]
+  #permission_classes = [IsAuthenticated]
   
   
   serializer_class = UserCeprunsaRolesAndInfosCreateSerializer
