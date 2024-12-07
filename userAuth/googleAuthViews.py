@@ -44,8 +44,7 @@ class RefreshTokenView(APIView):
       refresh_token = request.data['refresh']
       token = RefreshToken(refresh_token)
       access_token = str(token.access_token)
-      access_expiration = datetime.datetime.fromtimestamp(access_token['exp'])
-      return Response({'access': access_token, 'access_expiration':access_expiration, 'refres':token}, status=status.HTTP_200_OK)
+      return Response({'access': access_token}, status=status.HTTP_200_OK)
     except Exception as e:
       return Response({'message': 'Error al refrescar el token'}, status=status.HTTP_400_BAD_REQUEST)
 
