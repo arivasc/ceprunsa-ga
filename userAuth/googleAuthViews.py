@@ -7,18 +7,19 @@ from django.core.exceptions import ObjectDoesNotExist
 from userAuth.models import UserCeprunsaRoleRelation
 import requests
 import datetime
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from drf_spectacular.utils import extend_schema
 
 from rest_framework.permissions import IsAuthenticated
 
 class LogOutView(APIView):
   permission_classes = [IsAuthenticated]
   
-  
-  @swagger_auto_schema(
-    operation_description="Cerrar sesion, se añade el refresh token a la blacklist",
+  @extend_schema(
+    summary="Cerrar sesión",
+    description="Cierra la sesión del usuario",
     responses={200: "OK", 400: "Error en la solicitud"},
+    #request=OpenApiTypes.STR,
+    methods=['POST']
   )
   def post(self, request):
     try:
@@ -31,31 +32,30 @@ class LogOutView(APIView):
     
 class RefreshTokenView(APIView):
   permission_classes = [IsAuthenticated]
-  @swagger_auto_schema(
-    operation_description="Refrescar el token de acceso",
-    responses={200: "OK", 400: "Error en la solicitud"},
+  
+  @extend_schema(
+    summary="Refrescar token",
+    description="Refresca el token de acceso",
+    responses={200: {"access": "str"}, 400: "Error al refrescar el token"},
+    methods=['POST']
   )
   def post(self, request):
     try:
       refresh_token = request.data['refresh']
       token = RefreshToken(refresh_token)
       access_token = str(token.access_token)
-      return Response({'access': access_token})
+      return Response({'access': access_token}, status=status.HTTP_200_OK)
     except Exception as e:
       return Response({'message': 'Error al refrescar el token'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
 class GoogleAuthView(APIView):
-  @swagger_auto_schema(
-    operation_description="Autenticación con Google",
-    request_body=openapi.Schema(
-      type=openapi.TYPE_OBJECT,
-      properties={
-        'token': openapi.Schema(type=openapi.TYPE_STRING, description='Token de Google'),
-      }
-    ),
-    responses={200: "OK", 400: "Error en la solicitud"},
+  @extend_schema(
+    summary="Autenticación con Google",
+    description="Autentica a un usuario con Google",
+    responses={200: {"refresh": "str", "access": "str", "access_expiration": "datetime", "user": {"email": "str", "name": "str", "picture": "str", "id": "int"}, "roles": [{"id": "int", "name": "str"}]}, 401: "Usuario no está registrado", 400: "Token inválido"},
+    methods=['POST']
   )
   def post(self, request):
     tokenId = request.data.get('token')
