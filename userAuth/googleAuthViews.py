@@ -65,9 +65,9 @@ class GoogleAuthView(APIView):
       google_user = response.json()
       email = google_user['email']
       try:
-        user = UserCeprunsa.objects.get(email=email)
+        user = UserCeprunsa.objects.get(email=email, registerState='A')
         
-        roles = UserCeprunsaRoleRelation.objects.filter(idUser=user).values('idRole__name')
+        roles = UserCeprunsaRoleRelation.objects.filter(idUser=user, registerState='A').values('idRole__name')
         
         # Genera los tokens de acceso y refresco
         refresh = RefreshToken.for_user(user)
