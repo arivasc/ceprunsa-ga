@@ -50,7 +50,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     methods=['GET']
   )
   def get(self, request):
-    users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').all()
+    users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').all().exclude(registerState='*')
     serializer = UserCeprunsaSimpleListSerializer(users, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -132,13 +132,13 @@ class UserCeprunsaDetailView(APIView):
     try:
         userCeprunsa = UserCeprunsa.objects.get(id=pk)
 
-        if userCeprunsa.registerState == 'I':
+        if userCeprunsa.registerState == '*':
             return Response({'message': 'Usuario ya está eliminado'}, status=status.HTTP_400_BAD_REQUEST)
         
     except UserCeprunsa.DoesNotExist:
         return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-    userCeprunsa.registerState = 'I'
+    userCeprunsa.registerState = '*'
     userCeprunsa.save()
     return Response({'message': 'Usuario eliminado'}, status=status.HTTP_204_NO_CONTENT)
 
