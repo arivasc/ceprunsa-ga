@@ -126,12 +126,14 @@ class UserCeprunsaDetailView(APIView):
   @extend_schema(
     summary="Eliminar usuario Ceprunsa por id",
     description="Elimina un usuario Ceprunsa",
-    responses={204: 'Usuario eliminado'}
+    responses={204: 'Usuario eliminado', 404: 'Usuario no encontrado'},
   )
   def delete(self, request, pk):
-    userCeprunsa = self.get_object(pk)
-    if not userCeprunsa:
-      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        userCeprunsa = UserCeprunsa.objects.get(id=pk, registerState__ne='I')
+    except UserCeprunsa.DoesNotExist:
+        return Response({'message': 'Usuario no encontrado o ya está eliminado'}, status=status.HTTP_404_NOT_FOUND)
+    
     userCeprunsa.registerState = 'I'
     userCeprunsa.save()
     return Response({'message': 'Usuario eliminado'}, status=status.HTTP_204_NO_CONTENT)
