@@ -114,7 +114,7 @@ class GoogleAuthView(APIView):
         
         # Genera los tokens de acceso y refresco
         refresh = RefreshToken.for_user(user)
-        accessToken = refresh.accessToken
+        accessToken = refresh.access_token
         
         # Obtén la expiración del token de acceso
         access_expiration = datetime.datetime.fromtimestamp(accessToken['exp'])
