@@ -79,6 +79,38 @@ class UserCeprunsaDetailSerializer(serializers.ModelSerializer):
       return None
 
 
+#=============================================================================
+#Serializador de UserCeprunsa con personalInfo y paymentInfo completo
+#=============================================================================
+
+class UserCeprunsaToEditSerializer(serializers.ModelSerializer):
+  personalInfo = UserCeprunsaPersonalInfoSerializer(required=False)
+  paymentInfo = UserCeprunsaPaymentInfoSerializer(required=False)
+
+  class Meta:
+    model = UserCeprunsa
+    fields = ['id', 'email', 'personalInfo', 'paymentInfo']
+
+  def update(self, instance, validated_data):
+    
+    instance.email = validated_data.get('email', instance.email)
+    instance.save()
+
+    personal_info_data = validated_data.get('personalInfo', None)
+    if personal_info_data:
+      personal_info_instance = instance.userceprunsapersonalinfo
+      for key, value in personal_info_data.items():
+        setattr(personal_info_instance, key, value)
+      personal_info_instance.save()
+
+    payment_info_data = validated_data.get('paymentInfo', None)
+    if payment_info_data:
+      payment_info_instance = instance.userceprunsapaymentinfo
+      for key, value in payment_info_data.items():
+        setattr(payment_info_instance, key, value)
+      payment_info_instance.save()
+
+    return instance
 
 #=============================================================================
 #Serializador de listado simple de UserCeprunsa con algunos datos personales
@@ -196,12 +228,22 @@ class UserCeprunsaRolRelationSerializer(serializers.ModelSerializer):
 #Serializador de solicitud de asignacion de roles a un usuario
 #=============================================================================
 class UserRoleAssignmentRequestSerializer(serializers.Serializer):
-    roles = serializers.ListField(
-        child=serializers.IntegerField(),
-        min_length=1,
-        max_length=2,
-        help_text="Lista de IDs de roles (mínimo 1, máximo 2)"
-    )
+  roles = serializers.ListField(
+    child=serializers.IntegerField(),
+    min_length=1,
+    max_length=2,
+    help_text="Lista de IDs de roles (mínimo 1, máximo 2)"
+  )
+
+
+#=============================================================================
+#Serializador de solicitud de refrescar token
+#=============================================================================
+class RefreshTokenRequestSerializer(serializers.Serializer):
+  refresh = serializers.CharField(
+    help_text="El token de refresco proporcionado por el servidor",
+  )
+
 
 
 #=============================================================================

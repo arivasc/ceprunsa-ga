@@ -5,6 +5,7 @@ class UserCeprunsaPersonalInfoSerializer(serializers.ModelSerializer):
   class Meta:
     model = UserCeprunsaPersonalInfo
     fields = [
+      'id',
       'names', 
       'lastNames', 
       'birthDate', 
@@ -12,9 +13,22 @@ class UserCeprunsaPersonalInfoSerializer(serializers.ModelSerializer):
       'address', 
       'documentType', 
       'identityDocument', 
-      'secondPhone', 'personalEmail', 'cv', 'academicDegree', 'career']
+      'secondPhone',
+      'personalEmail',
+      'cv',
+      'academicDegree',
+      'career'
+      ]
     
 class UserCeprunsaPaymentInfoSerializer(serializers.ModelSerializer):
   class Meta:
     model = UserCeprunsaPaymentInfo
-    fields = ['universityRelationship', 'ruc', 'bankEntity', 'bankAccount', 'cci', 'hasFourthSuspension']
+    fields = [
+      'id',
+      'universityRelationship',
+      'ruc',
+      'bankEntity',
+      'bankAccount',
+      'cci',
+      'hasFourthSuspension'
+      ]

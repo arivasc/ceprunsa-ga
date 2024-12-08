@@ -7,10 +7,16 @@ from django.core.exceptions import ObjectDoesNotExist
 from userAuth.models import UserCeprunsaRoleRelation
 import requests
 import datetime
+
+from userAuth.serializers import RefreshTokenRequestSerializer
+
 from drf_spectacular.utils import extend_schema
 
 from rest_framework.permissions import IsAuthenticated
 
+#===============================================================
+#API para cerrar sesión
+#===============================================================
 class LogOutView(APIView):
   permission_classes = [IsAuthenticated]
   
@@ -23,33 +29,70 @@ class LogOutView(APIView):
   )
   def post(self, request):
     try:
-      refresh_token = request.data['refresh']
-      token = RefreshToken(refresh_token)
+      refreshToken = request.data['refresh']
+      token = RefreshToken(refreshToken)
       token.blacklist()
-      return Response({'message': 'Logout exitoso'}, status=status.HTTP_200_OK)
+      return Response(
+        {'message': 'Logout exitoso'},
+        status=status.HTTP_200_OK)
+      
     except Exception as e:
-      return Response({'message': 'Error al cerrar sesión'}, status=status.HTTP_400_BAD_REQUEST)
-    
+      return Response(
+        {'message': 'Error al cerrar sesión'},
+        status=status.HTTP_400_BAD_REQUEST)
+
+#===============================================================
+#API para refrescar token
+#===============================================================    
 class RefreshTokenView(APIView):
   permission_classes = [IsAuthenticated]
   
   @extend_schema(
     summary="Refrescar token",
     description="Refresca el token de acceso",
-    responses={200: {"access": "str"}, 400: "Error al refrescar el token"},
+    request=RefreshTokenRequestSerializer,
+    responses={200: {
+            "type": "object",
+            "properties": {
+                "access": {"type": "string", "description": "Nuevo token de acceso"},
+                "access_expiration": {"type": "integer", "description": "Fecha de expiración del token en formato timestamp"},
+                "refresh": {"type": "string", "description": "Nuevo token de refresco"}
+            }
+        }, 400: "Error al refrescar el token"},
     methods=['POST']
   )
   def post(self, request):
     try:
-      refresh_token = request.data['refresh']
-      token = RefreshToken(refresh_token)
-      access_token = str(token.access_token)
-      return Response({'access': access_token}, status=status.HTTP_200_OK)
+      refreshToken = request.data.get('refresh')
+      
+      if not refreshToken:
+        return Response(
+          {'message': 'No se proporcionó un token de refresco'},
+          status=status.HTTP_400_BAD_REQUEST
+          )
+        
+      oldRefreshToken = RefreshToken(refreshToken)
+      newAccessToken = oldRefreshToken.access_token
+      newRefreshToken = RefreshToken.for_user(request.user)
+      
+      accessExpiration = datetime.datetime.fromtimestamp(newAccessToken['exp'])
+      
+      return Response(
+        {'access': str(newAccessToken),
+         'access_expiration': accessExpiration,
+         'refresh': str(newRefreshToken)},
+        status=status.HTTP_200_OK
+        )
+      
     except Exception as e:
-      return Response({'message': 'Error al refrescar el token'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response(
+        {'message': 'Error al refrescar el token'},
+        status=status.HTTP_400_BAD_REQUEST
+        )
 
-
-
+#===============================================================
+#API para autenticación con Google
+#===============================================================
 class GoogleAuthView(APIView):
   @extend_schema(
     summary="Autenticación con Google",
@@ -71,10 +114,10 @@ class GoogleAuthView(APIView):
         
         # Genera los tokens de acceso y refresco
         refresh = RefreshToken.for_user(user)
-        access_token = refresh.access_token
+        accessToken = refresh.accessToken
         
         # Obtén la expiración del token de acceso
-        access_expiration = datetime.datetime.fromtimestamp(access_token['exp'])
+        access_expiration = datetime.datetime.fromtimestamp(accessToken['exp'])
         
         # Información adicional del usuario
         user_data = {
@@ -86,7 +129,7 @@ class GoogleAuthView(APIView):
         
         return Response({
           'refresh': str(refresh),
-          'access': str(access_token),
+          'access': str(accessToken),
           'access_expiration': access_expiration,  # Fecha de expiración del token
           'user': user_data,
           'roles': roles

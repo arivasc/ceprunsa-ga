@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from userAuth.serializers import UserCeprunsaRolesAndInfosCreateSerializer, UserCeprunsaDetailSerializer, UserCeprunsaSimpleListSerializer
+from userAuth.serializers import UserCeprunsaRolesAndInfosCreateSerializer, UserCeprunsaDetailSerializer, UserCeprunsaSimpleListSerializer, UserCeprunsaToEditSerializer
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -71,6 +71,7 @@ class UserCeprunsaDetailView(APIView):
       return UserCeprunsaDetailSerializer(userCeprunsa).data
     except ObjectDoesNotExist:
       return None
+    
   @extend_schema(
     summary="Ver usuario Ceprunsa por id",
     description="Muestra un usuario Ceprunsa con sus roles, datos personales e información de pago",
@@ -78,13 +79,62 @@ class UserCeprunsaDetailView(APIView):
     parameters=[
       #OpenApiParameter(name='pk', type=OpenApiTypes.INT, description='Id del usuario Ceprunsa')
     ]
-  )  
+  )
   def get(self, request, pk):
     userCeprunsaSerialiser = self.get_object(pk)
     if not userCeprunsaSerialiser:
       return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
     #serializer = UserCeprunsaSimpleSerializer(userCeprunsa)
     return Response(userCeprunsaSerialiser, status=status.HTTP_200_OK)
+  
+  @extend_schema(
+    summary="Actualización completa de usuario Ceprunsa por id",
+    description="Edita un usuario Ceprunsa con sus datos personales e información de pago",
+    request=UserCeprunsaToEditSerializer,
+    responses={
+      200: UserCeprunsaDetailSerializer,
+      400: "Error al actualizar el usuario",
+      404: "Usuario no encontrado"}
+  )
+  def put(self, request, pk):
+    return self.update(request, pk)
+  
+  @extend_schema(
+    summary="Actualización parcial de usuario Ceprunsa por id",
+    description="Edita un usuario Ceprunsa con sus datos personales e información de pago",
+    request=UserCeprunsaToEditSerializer,
+    responses={
+      200: UserCeprunsaDetailSerializer,
+      400: "Error al actualizar el usuario",
+      404: "Usuario no encontrado"}
+  )
+  def patch(self, request, pk):
+    return self.update(request, pk)
+  
+  
+  def update(self, request, pk):
+    userCeprunsa = self.get_object(pk)
+    if not userCeprunsa:
+      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = UserCeprunsaToEditSerializer(userCeprunsa, data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      serializerReturn = UserCeprunsaDetailSerializer(serializer.instance)
+      return Response(serializerReturn.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
+  @extend_schema(
+    summary="Eliminar usuario Ceprunsa por id",
+    description="Elimina un usuario Ceprunsa",
+    responses={204: 'Usuario eliminado'}
+  )
+  def delete(self, request, pk):
+    userCeprunsa = self.get_object(pk)
+    if not userCeprunsa:
+      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    userCeprunsa.registerState = 'I'
+    userCeprunsa.save()
+    return Response({'message': 'Usuario eliminado'}, status=status.HTTP_204_NO_CONTENT)
 
 
 #==============================================================================
