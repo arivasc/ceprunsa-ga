@@ -130,10 +130,14 @@ class UserCeprunsaDetailView(APIView):
   )
   def delete(self, request, pk):
     try:
-        userCeprunsa = UserCeprunsa.objects.get(id=pk, registerState__ne='I')
+        userCeprunsa = UserCeprunsa.objects.get(id=pk)
+
+        if userCeprunsa.registerState == 'I':
+            return Response({'message': 'Usuario ya está eliminado'}, status=status.HTTP_400_BAD_REQUEST)
+        
     except UserCeprunsa.DoesNotExist:
-        return Response({'message': 'Usuario no encontrado o ya está eliminado'}, status=status.HTTP_404_NOT_FOUND)
-    
+        return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
     userCeprunsa.registerState = 'I'
     userCeprunsa.save()
     return Response({'message': 'Usuario eliminado'}, status=status.HTTP_204_NO_CONTENT)
