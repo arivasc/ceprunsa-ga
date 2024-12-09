@@ -59,12 +59,8 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
 #API para ver, editar y eliminar usuarios por id
 #==============================================================================
 class UserCeprunsaDetailView(APIView):
-  #permission_classes = [IsAuthenticated]
-  
-  
-  serializer_class = UserCeprunsaRolesAndInfosCreateSerializer
-  
-  
+  permission_classes = [IsAuthenticated]
+   
   def get_object(self, pk):
     try:
       userCeprunsa = UserCeprunsa.objects.get(id=pk)
@@ -75,7 +71,7 @@ class UserCeprunsaDetailView(APIView):
   @extend_schema(
     summary="Ver usuario Ceprunsa por id",
     description="Muestra un usuario Ceprunsa con sus roles, datos personales e información de pago",
-    responses={200: UserCeprunsaDetailSerializer},
+    responses={200: UserCeprunsaDetailSerializer, 404: 'Usuario no encontrado'},
     parameters=[
       #OpenApiParameter(name='pk', type=OpenApiTypes.INT, description='Id del usuario Ceprunsa')
     ]
@@ -158,67 +154,9 @@ class UserCeprunsaExistsView(APIView):
     try:
       #email = request.query_params.get('email')
       userCeprunsa = UserCeprunsa.objects.get(email=email)
+      if userCeprunsa.registerState == '*':
+        return Response({'exists': True, 'mensaje':'El usuario existe pero ha sido deshabilitado'}, status=status.HTTP_200_OK)
       return Response({'exists': True}, status=status.HTTP_200_OK)
     except ObjectDoesNotExist:
       return Response({'exists': False}, status=status.HTTP_200_OK)
 
-
-#api para listar y crear usuarios
-#class UserCeprunsaListCreateView(APIView):
-#  permission_classes = [IsAuthenticated]
-#  def get(self, request):
-#    includeInactive = request.query_params.get('includeInactive', 'false').lower() == 'true'
-#    
-#    if includeInactive:
-#      users = UserCeprunsa.objects.all()
-#    else:
-#      users = UserCeprunsa.objects.filter(registerState='A')
-#    
-#    serializer = UserCeprunsaSimpleSerializer(users, many=True)
-#    return Response(serializer.data)
-#  
-#  def post(self, request):
-#    serializer = UserCeprunsaSimpleSerializer(data=request.data)
-#    if serializer.is_valid():
-#      serializer.save()
-#      return Response(serializer.data, status=status.HTTP_201_CREATED)
-#    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#api para ver, editar y eliminar usuarios
-#class UserCeprunsaDetailView(APIView):
-#  permission_classes = [IsAuthenticated]
-  
-  #método para obtener un usuario por id reusable
-#  def get_object(self, pk):
-#    try:
-#      return UserCeprunsa.objects.get(id=pk)
-#    except ObjectDoesNotExist:
-#      return None
-  
-  #obtención de un usuario por id
-#  def get(self, request, pk):
-#    userCeprunsa = self.get_object(pk)
-#    if not userCeprunsa:
-#      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-#    serializer = UserCeprunsaSimpleSerializer(userCeprunsa)
-#    return Response(serializer.data)
-  
-  #actualización de un usuario por id
-#  def put(self, request, pk):
-#    userCeprunsa = self.get_object(pk)
-#    if not userCeprunsa:
-#      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-#    serializer = UserCeprunsaSimpleSerializer(userCeprunsa, data=request.data)
-#    if serializer.is_valid():
-#      serializer.save()
-#      return Response(serializer.data)
-#    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-  
-  #eliminación de un usuario por id
-#  def delete(self, request, pk):
-#    userCeprunsa = self.get_object(pk)
-#    if not userCeprunsa:
-#      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-#    userCeprunsa.registerState = 'I'
-#    userCeprunsa.save()
-#    return Response({'message': 'Usuario eliminado'}, status=status.HTTP_204_NO_CONTENT)

@@ -45,7 +45,8 @@ class LogOutView(APIView):
 #API para refrescar token
 #===============================================================    
 class RefreshTokenView(APIView):
-  permission_classes = [IsAuthenticated]
+  #No se comprobará si el usuario está autenticado, solo si el token de refresco es válido
+  #permission_classes = [IsAuthenticated]
   
   @extend_schema(
     summary="Refrescar token",
@@ -97,7 +98,16 @@ class GoogleAuthView(APIView):
   @extend_schema(
     summary="Autenticación con Google",
     description="Autentica a un usuario con Google",
-    responses={200: {"refresh": "str", "access": "str", "access_expiration": "datetime", "user": {"email": "str", "name": "str", "picture": "str", "id": "int"}, "roles": [{"id": "int", "name": "str"}]}, 401: "Usuario no está registrado", 400: "Token inválido"},
+    responses={
+      200: {"refresh": "str", "access": "str",
+            "access_expiration": "datetime",
+            "user":{
+              "email": "str", "name": "str",
+              "picture": "str", "id": "int"
+            },
+            "roles": [{"id": "int", "name": "str"}]},
+      401: "Usuario no está registrado",
+      400: "Token inválido"},
     methods=['POST']
   )
   def post(self, request):
@@ -123,7 +133,7 @@ class GoogleAuthView(APIView):
         user_data = {
           'email': user.email,
           'name': google_user['name'],
-          'picture': google_user['picture'],  # Asegúrate de que el campo 'name' existe en el modelo UserCeprunsa
+          'picture': google_user['picture'],
           'id': user.id
         }
         
