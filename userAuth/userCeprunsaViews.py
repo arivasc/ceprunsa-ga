@@ -59,7 +59,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
 #API para ver, editar y eliminar usuarios por id
 #==============================================================================
 class UserCeprunsaDetailView(APIView):
-  permission_classes = [IsAuthenticated]
+  #permission_classes = [IsAuthenticated]
    
   def get_object(self, pk):
     try:
@@ -82,6 +82,17 @@ class UserCeprunsaDetailView(APIView):
       return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
     #serializer = UserCeprunsaSimpleSerializer(userCeprunsa)
     return Response(userCeprunsaSerialiser, status=status.HTTP_200_OK)
+  
+  def update(self, request, pk):
+    userCeprunsa = UserCeprunsa.objects.get(id=pk)
+    if not userCeprunsa:
+      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = UserCeprunsaToEditSerializer(userCeprunsa, data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      serializerReturn = UserCeprunsaDetailSerializer(serializer.instance)
+      return Response(serializerReturn.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
   
   @extend_schema(
     summary="Actualización completa de usuario Ceprunsa por id",
@@ -108,16 +119,7 @@ class UserCeprunsaDetailView(APIView):
     return self.update(request, pk)
   
   
-  def update(self, request, pk):
-    userCeprunsa = self.get_object(pk)
-    if not userCeprunsa:
-      return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-    serializer = UserCeprunsaToEditSerializer(userCeprunsa, data=request.data)
-    if serializer.is_valid():
-      serializer.save()
-      serializerReturn = UserCeprunsaDetailSerializer(serializer.instance)
-      return Response(serializerReturn.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
   
   @extend_schema(
     summary="Eliminar usuario Ceprunsa por id",
@@ -143,7 +145,7 @@ class UserCeprunsaDetailView(APIView):
 #API para devolver true si el usuario existe
 #==============================================================================
 class UserCeprunsaExistsView(APIView):
-  #permission_classes = [IsAuthenticated]
+  permission_classes = [IsAuthenticated]
   @extend_schema(
     summary="Verificar si el usuario Ceprunsa existe",
     description="Verifica si el usuario Ceprunsa existe por email",
