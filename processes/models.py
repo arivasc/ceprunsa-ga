@@ -1,4 +1,6 @@
 from django.db import models
+from userAuth.models import UserCeprunsa, RoleCeprunsa
+from courses.models import Course
 import json
 
 class Process(models.Model):
@@ -27,3 +29,20 @@ class Process(models.Model):
   
   class Meta:
     db_table = 'processes'
+    
+class ProcessUserCerprunsaRelation(models.Model):
+  process = models.ForeignKey(Process, on_delete=models.CASCADE)
+  userCeprunsa = models.ForeignKey(UserCeprunsa, on_delete=models.CASCADE, db_column='user_ceprunsa')
+  role = models.ForeignKey(RoleCeprunsa, on_delete=models.CASCADE)
+  startDate = models.DateField(db_column='start_date')
+  endDate = models.DateField(db_column='end_date')
+  course = models.ForeignKey(Course, on_delete=models.CASCADE, blank=True, null=True)
+  weekHours = models.CharField(max_length=7, db_column='week_hours', blank=True, null=True)
+  totalHours = models.CharField(max_length=7, db_column='total_hours', blank=True, null=True)
+  paymentType = models.CharField(max_length=1, db_column='payment_type')
+  finalState = models.CharField(max_length=1, default='E', db_column='final_state')
+  quality = models.CharField(max_length=1, default='A')
+  registerState = models.CharField(max_length=1, default='A', db_column='register_state')
+  
+  class Meta:
+    db_table = 'process_user_ceprunsa_relation'

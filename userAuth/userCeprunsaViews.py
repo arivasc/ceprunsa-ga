@@ -59,7 +59,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
 #API para ver, editar y eliminar usuarios por id
 #==============================================================================
 class UserCeprunsaDetailView(APIView):
-  #permission_classes = [IsAuthenticated]
+  permission_classes = [IsAuthenticated]
    
   def get_object(self, pk):
     try:

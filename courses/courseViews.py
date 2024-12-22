@@ -1,12 +1,122 @@
-from courses.models import Course
-from courses.serializers import DetailedCourseSerializer, CourseSerializer
+from courses.models import Course, CourseTeacherRelation
+from userAuth.models import UserCeprunsa, UserCeprunsaRoleRelation
+from courses.serializers import DetailedCourseSerializer, CourseSerializer, CourseTeacherRelationSerializer, DetailedCourseTeacherRelationSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-from drf_spectacular.utils import extend_schema
+from django.shortcuts import get_object_or_404
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+
+#==============================================================================
+#API para listar y crear relaciones entre cursos y profesores
+#==============================================================================
+class CourseTeacherRelationCreateView(APIView):
+  #permission_classes = [IsAuthenticated]
+  
+  @extend_schema(
+        summary="Asignar docentes a un curso",
+        description=(
+            "Permite asignar una lista de usuarios con el rol 'Servidor de enseñanza' a un curso específico, "
+            "identificado por su `pk`. Verifica que cada usuario tenga el rol adecuado antes de asignarlo."
+        ),
+        
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "teachers": {
+                        "type": "array",
+                        "items": {"type": "integer"},
+                        "description": "Lista de IDs de usuarios a asignar al curso.",
+                    }
+                },
+                "required": ["teachers"],
+                "example": {"teachers": [1, 2, 3]},
+            }
+        },
+        responses={
+            201: {
+                "description": "Relaciones creadas exitosamente.",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "created_relations": [
+                                {"course": 1, "teacher": 1},
+                                {"course": 1, "teacher": 2},
+                            ],
+                            "errors": [],
+                        }
+                    }
+                },
+            },
+            400: {
+                "description": "Error en la validación o asignación.",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "created_relations": [],
+                            "errors": [
+                                "Usuario con ID 3 no tiene el rol 'Servidor de enseñanza'.",
+                                "Usuario 2 ya está asignado al curso.",
+                            ],
+                        }
+                    }
+                },
+            },
+            404: {
+                "description": "Curso no encontrado.",
+                "content": {
+                    "application/json": {"example": {"detail": "No encontrado."}},
+                },
+            },
+        },
+    )
+  def post(self, request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    
+    userIds = request.data.get('teachers', [])
+    if not isinstance(userIds, list) or not userIds:
+      return Response({'message': 'Debe enviar una lista de profesores'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    createdRelations = []
+    errors = []
+    
+    for userId in userIds:
+      try:
+        teacher = UserCeprunsa.objects.get(id=userId)
+        hasRole = UserCeprunsaRoleRelation.objects.filter(idUser=userId, idRole=6).exists()
+        if not hasRole:
+          errors.append(f'El profesor con id {userId} no tiene el rol de profesor')
+          continue
+        relation, created = CourseTeacherRelation.objects.get_or_create(course=course, teacher=teacher)
+        
+        if created:
+          createdRelations.append(relation)
+        else:
+          errors.append(f'El profesor con id {userId} ya tiene una relación con el curso')
+        
+      except ObjectDoesNotExist:
+        errors.append(f'El profesor con id {userId} no existe')
+    serializer = CourseTeacherRelationSerializer(createdRelations, many=True)
+    return Response(
+      {'created': serializer.data,
+       'errors': errors},
+      status=status.HTTP_201_CREATED if createdRelations else status.HTTP_400_BAD_REQUEST)
+  
+  @extend_schema(
+    summary="Listar relaciones entre cursos y profesores",
+    description="Lista todas las relaciones entre cursos y profesores",
+    responses={200: CourseTeacherRelationSerializer(many=True)}
+  )
+  def get(self, request, pk):
+    relations = CourseTeacherRelation.objects.filter(course=pk)
+    serializer = CourseTeacherRelationSerializer(relations, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 #==============================================================================
 #API para listar y crear cursos
@@ -48,7 +158,7 @@ class CourseCreateView(APIView):
 #==============================================================================
 #API para ver, editar y eliminar cursos por id
 #==============================================================================
-  
+
 class CourseDetailView(APIView):
   permission_classes = [IsAuthenticated]
   

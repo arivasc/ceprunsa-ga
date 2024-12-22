@@ -170,7 +170,26 @@ class UserCeprunsaSimpleSerializer(serializers.ModelSerializer):
       'lastNames',
       ]
   
-  
+#=============================================================================
+#Serializador de UserCeprunsa con email y algunos datos personales
+#=============================================================================
+
+class UserCeprunsaSimpleSerializer(serializers.ModelSerializer):
+  names = serializers.CharField(
+    source='userceprunsapersonalinfo.names', read_only=True)
+  lastNames = serializers.CharField(
+    source='userceprunsapersonalinfo.lastNames', read_only=True)
+ 
+    
+  class Meta:
+    model = UserCeprunsa
+    fields = [
+      'id',
+      'email',
+      'names',
+      'lastNames',
+      ]
+ 
 
 #=============================================================================
 #Serializador de UserCeprunsa con sus roles, personalInfo y paymentInfo resumido
