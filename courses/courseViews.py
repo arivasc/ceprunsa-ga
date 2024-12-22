@@ -116,6 +116,16 @@ class CourseTeacherRelationCreateView(APIView):
     relations = CourseTeacherRelation.objects.filter(course=pk)
     serializer = DetailedCourseTeacherRelationSerializer(relations, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+  
+  @extend_schema(
+    summary="Eliminar la relación entre un curso y un profesor",
+    description="Elimina la relación entre un curso y un profesor",
+    responses={204: 'Relacion eliminada'}
+  )
+  def delete(self, request, pk):
+    relations = CourseTeacherRelation.objects.filter(id=pk)
+    relations.delete()
+    return Response({'message': 'Relacion eliminada'}, status=status.HTTP_204_NO_CONTENT)
 
 
 #==============================================================================
