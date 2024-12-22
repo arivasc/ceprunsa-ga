@@ -114,7 +114,7 @@ class CourseTeacherRelationCreateView(APIView):
   )
   def get(self, request, pk):
     relations = CourseTeacherRelation.objects.filter(course=pk)
-    serializer = CourseTeacherRelationSerializer(relations, many=True)
+    serializer = DetailedCourseTeacherRelationSerializer(relations, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
