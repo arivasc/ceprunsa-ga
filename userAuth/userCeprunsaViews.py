@@ -15,7 +15,7 @@ from drf_spectacular.openapi import OpenApiParameter
 #API para listar y crear usuarios
 #==============================================================================
 class UserCeprunsaSimpleListDetailedCreateView(APIView):
-  permission_classes = [ IsAuthenticated ]
+  #permission_classes = [ IsAuthenticated ]
   
   serializer_class = UserCeprunsaRolesAndInfosCreateSerializer
   
@@ -50,7 +50,12 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     methods=['GET']
   )
   def get(self, request):
-    users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').all().exclude(registerState='*')
+    roleId = request.data.get('role', None)
+    if roleId:
+      users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').filter(userceprunsarolerelation__idRole=roleId,
+    userceprunsarolerelation__registerState='A').all().exclude(registerState='*').order_by('-id')
+    else:
+      users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').all().exclude(registerState='*').order_by('-id')
     serializer = UserCeprunsaSimpleListSerializer(users, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 

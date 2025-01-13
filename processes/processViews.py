@@ -1,5 +1,12 @@
-from processes.models import Process
-from processes.serializers import DetailedProcessSerializer, SimpleListProcessSerializer
+from processes.models import Process, ProcessUserCerprunsaRelation
+from userAuth.models import UserCeprunsa, UserCeprunsaRoleRelation
+from courses.models import CourseTeacherRelation, Course
+from processes.serializers import (
+  DetailedProcessSerializer,
+  SimpleListProcessSerializer,
+  ProcessUserCerprunsaRelationsListSerializer,
+  ProcessUserCerprunsaRelationSerializer,
+  ProcessUserCerprunsaRelationDetailSerializer)
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -7,7 +14,154 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 
-from drf_spectacular.utils import extend_schema
+#from django.db.models import Q
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+
+
+#==============================================================================
+#API para listar y crear relaciones entre usuarios y procesos
+#==============================================================================
+class ProcessUserCerprunsaRelationListCreateView(APIView):
+  #permission_classes = [IsAuthenticated]
+  
+  @extend_schema(
+    summary="Mostrar relaciones usuario-proceso",
+    description="Muestra todas las relaciones entre usuarios y procesos.",
+    responses={200: ProcessUserCerprunsaRelationsListSerializer(many=True)}
+  )
+  def get(self, request):
+    includeAll = request.query_params.get('includeAll', 'false').lower() == 'true'
+    
+    if includeAll:
+      relations = ProcessUserCerprunsaRelation.objects.all()
+    else:
+      relations = ProcessUserCerprunsaRelation.objects.exclude(registerState='*')
+    
+    serializer = ProcessUserCerprunsaRelationsListSerializer(relations, many=True)
+    return Response(serializer.data)
+  
+  @extend_schema(
+    summary="Asignar usuarios a un proceso",
+    description=(
+        "Asigna uno o más usuarios a un proceso especificado por su ID (pk). "
+        "El usuario debe tener roles activos asignados, y la relación no debe existir previamente. "
+        "Además, se puede proporcionar un nivel de calidad opcional para la relación. "
+        "Los usuarios sin roles activos o relaciones ya existentes generan errores."
+    ),
+    request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "users": {
+                        "type": "array",
+                        "items": {"type": "integer"},
+                        "description": "Lista de IDs de usuarios a asignar al proceso.",
+                    },
+                    "quality": {
+                        "type": "string",
+                        "description": "Nivel de calidad opcional para la relación.",
+                        "nullable": True,
+                    },
+                },
+                "required": ["users"],
+                "example": {"users": [1, 2, 3], "quality": "2"},
+            }
+        },
+    responses={
+        201: OpenApiExample(
+            "Asignaciones exitosas",
+            value={
+                "created": [
+                    {
+                        "id": 1,
+                        "idUserCeprunsa": 5,
+                        "idProcess": 10,
+                        "idRole": 2,
+                        "idCourse": None,
+                        "startDate": "2024-01-01",
+                        "endDate": "2024-12-31",
+                        "quality": "Alta",
+                    }
+                ],
+                "errors": [],
+            },
+        ),
+        400: OpenApiExample(
+            "Errores en las asignaciones",
+            value={
+                "created": [],
+                "errors": [
+                    "El usuario con id 3 no tiene roles asignados",
+                    "El usuario con id 5 ya tiene una relación con el proceso CEPRUNSA y el rol Docente",
+                ],
+            },
+        ),
+    },
+    examples=[
+        OpenApiExample(
+            "Ejemplo de solicitud",
+            value={
+                "users": [5, 10, 15],
+                "quality": "Alta",
+            },
+            request_only=True,
+        ),
+    ],
+)
+  def post(self, request, pk):
+    process = Process.objects.get(id=pk)
+    print(process)
+    print(process.dateStart)
+    userIds = request.data.get('users', [])
+    quality = request.data.get('quality')
+    
+    if not isinstance(userIds, list) or not userIds:
+      return Response({'message': 'Debe asignar al menos un usuario'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    createdRelations = []
+    errors = []
+    
+    for userId in userIds:
+      try:
+        user = UserCeprunsa.objects.get(id=userId)
+        hasRoles = UserCeprunsaRoleRelation.objects.filter(idUser=user, registerState='A')
+        
+        
+        if not hasRoles:
+          errors.append(f'El usuario con id {userId} no tiene roles asignados')
+          continue
+        
+        for role in hasRoles:
+          relation = ProcessUserCerprunsaRelation.objects.filter(idUserCeprunsa=user, idProcess=process, idRole=role.idRole)
+          courseRelation = CourseTeacherRelation.objects.filter(teacher=user)
+          if courseRelation:
+            print(courseRelation)
+            course = Course.objects.filter(id=courseRelation.course)
+            continue
+          if relation:
+            errors.append(f'El usuario con id {userId} ya tiene una relación con el proceso {process.name} y el rol {role.idRole.name}')
+            continue
+          #elif quality:
+          else:
+            relation = ProcessUserCerprunsaRelation.objects.create(
+              idUserCeprunsa=user,
+              idProcess=process,
+              idRole=role.idRole,
+              #idCourse=course or None,
+              startDate = process.dateStart,
+              endDate = process.dateEnd,
+              #quality=quality or None
+            )
+            createdRelations.append(relation)
+            
+      except ObjectDoesNotExist:
+        errors.append(f'El usuario con id {userId} no existe')
+    serializer = ProcessUserCerprunsaRelationSerializer(createdRelations, many=True)
+    return Response(
+      {'created': serializer.data,
+       'errors': errors},
+      status=status.HTTP_201_CREATED if createdRelations else status.HTTP_400_BAD_REQUEST)
 
 
 #==============================================================================
