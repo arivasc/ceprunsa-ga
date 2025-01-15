@@ -97,7 +97,7 @@ class DetailedCourseTeacherRelationSerializer(serializers.ModelSerializer):
   teacherId = serializers.IntegerField(source='teacher.id', read_only=True)
   teacherNames = serializers.CharField(source='teacher.userceprunsapersonalinfo.names', read_only=True)
   teacherLastName = serializers.CharField(source='teacher.userceprunsapersonalinfo.lastNames', read_only=True)
-  teacherDocument = serializers.CharField(source='teacher.userceprunsapersonalinfo.document', read_only=True)
+  teacherDocument = serializers.CharField(source='teacher.userceprunsapersonalinfo.identityDocument', read_only=True)
   
   class Meta:
     model = CourseTeacherRelation
