@@ -4,11 +4,11 @@ from userAuth.models import UserCeprunsa
 class Course(models.Model):
     name = models.CharField(max_length=63, unique=True)
     description = models.CharField(max_length=255)
-    coordinator = models.ForeignKey(
+    coordinator = models.OneToOneField(
         UserCeprunsa, on_delete=models.CASCADE,
         blank=True, null=True,
         related_name='coordinator')
-    subCoordinator = models.ForeignKey(
+    subCoordinator = models.OneToOneField(
         UserCeprunsa, on_delete=models.CASCADE,
         blank=True, null=True,
         db_column='sub_coordinator',

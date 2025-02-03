@@ -26,7 +26,6 @@ class Process(models.Model):
             {field: f'El campo {field} debe ser un JSON válido.'}
             )
   
-  
   class Meta:
     db_table = 'processes'
     
@@ -59,3 +58,21 @@ class ProcessUserCerprunsaRelation(models.Model):
   
   class Meta:
     db_table = 'process_user_ceprunsa_relation'
+    
+
+class Observation(models.Model):
+  idProcessUserCeprunsaRelation = models.ForeignKey(
+    ProcessUserCerprunsaRelation,
+    on_delete=models.CASCADE,
+    db_column='id_process_user_ceprunsa_relation')
+  date = models.DateField()
+  observation = models.TextField()
+  registerBy = models.ForeignKey(
+    UserCeprunsa,
+    on_delete=models.CASCADE,
+    db_column='register_by')
+  document = models.FileField(upload_to='observations/', blank=True, null=True)
+  registerState = models.CharField(max_length=1, default='A', db_column='register_state')
+  
+  class Meta:
+    db_table = 'observations'

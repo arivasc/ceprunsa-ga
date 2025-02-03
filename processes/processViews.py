@@ -14,29 +14,27 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 
-#from django.db.models import Q
-
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
 
 #==============================================================================
 #API para listar y crear relaciones entre usuarios y procesos
 #==============================================================================
-class ProcessUserCerprunsaRelationListCreateView(APIView):
+class ProcessUserCeprunsaRelationListCreateView(APIView):
   #permission_classes = [IsAuthenticated]
   
   @extend_schema(
-    summary="Mostrar relaciones usuario-proceso",
-    description="Muestra todas las relaciones entre usuarios y procesos.",
+    summary="Mostrar relaciones usuarios-proceso",
+    description="Muestra todas las relaciones entre usuarios y un proceso. Para incluir relaciones eliminadas, se debe especificar '?includeAll=true'.",
     responses={200: ProcessUserCerprunsaRelationsListSerializer(many=True)}
   )
-  def get(self, request):
+  def get(self, request, pk):
     includeAll = request.query_params.get('includeAll', 'false').lower() == 'true'
     
     if includeAll:
-      relations = ProcessUserCerprunsaRelation.objects.all()
+      relations = ProcessUserCerprunsaRelation.objects.filter(idProcess=pk)
     else:
-      relations = ProcessUserCerprunsaRelation.objects.exclude(registerState='*')
+      relations = ProcessUserCerprunsaRelation.objects.filter(idProcess=pk).exclude(registerState='*')
     
     serializer = ProcessUserCerprunsaRelationsListSerializer(relations, many=True)
     return Response(serializer.data)
@@ -50,24 +48,24 @@ class ProcessUserCerprunsaRelationListCreateView(APIView):
         "Los usuarios sin roles activos o relaciones ya existentes generan errores."
     ),
     request={
-            "application/json": {
-                "type": "object",
-                "properties": {
-                    "users": {
-                        "type": "array",
-                        "items": {"type": "integer"},
-                        "description": "Lista de IDs de usuarios a asignar al proceso.",
-                    },
-                    "quality": {
-                        "type": "string",
-                        "description": "Nivel de calidad opcional para la relación.",
-                        "nullable": True,
-                    },
-                },
-                "required": ["users"],
-                "example": {"users": [1, 2, 3], "quality": "2"},
-            }
+      "application/json": {
+        "type": "object",
+        "properties": {
+          "users": {
+              "type": "array",
+              "items": {"type": "integer"},
+              "description": "Lista de IDs de usuarios a asignar al proceso.",
+          },
+          "quality": {
+              "type": "string",
+              "description": "Nivel de calidad opcional para la relación.",
+              "nullable": True,
+          },
         },
+        "required": ["users"],
+        "example": {"users": [1, 2, 3], "quality": "2"},
+      }
+    },
     responses={
         201: OpenApiExample(
             "Asignaciones exitosas",
@@ -108,23 +106,27 @@ class ProcessUserCerprunsaRelationListCreateView(APIView):
             request_only=True,
         ),
     ],
-)
+  )
   def post(self, request, pk):
     process = Process.objects.get(id=pk)
-    print(process)
-    print(process.dateStart)
-    userIds = request.data.get('users', [])
-    quality = request.data.get('quality')
+    relations = request.data.get('relations', [])
     
-    if not isinstance(userIds, list) or not userIds:
+    if not isinstance(relations, list) or not relations:
       return Response({'message': 'Debe asignar al menos un usuario'}, status=status.HTTP_400_BAD_REQUEST)
     
     createdRelations = []
     errors = []
     
-    for userId in userIds:
+    for relation in relations:
+      if not isinstance(relation, dict) or 'userId' not in relation:
+        errors.append('Cada relación debe tener un campo "userId"')
+        continue
+      
+      userId = relation['userId']
+      quality = relation.get('quality', 'A')
       try:
-        user = UserCeprunsa.objects.get(id=userId)
+        user = UserCeprunsa.objects.get(id=userId, registerState='A')
+        print(user.email)
         hasRoles = UserCeprunsaRoleRelation.objects.filter(idUser=user, registerState='A')
         
         
@@ -134,26 +136,41 @@ class ProcessUserCerprunsaRelationListCreateView(APIView):
         
         for role in hasRoles:
           relation = ProcessUserCerprunsaRelation.objects.filter(idUserCeprunsa=user, idProcess=process, idRole=role.idRole)
-          courseRelation = CourseTeacherRelation.objects.filter(teacher=user)
-          if courseRelation:
-            print(courseRelation)
-            course = Course.objects.filter(id=courseRelation.course)
-            continue
+          
           if relation:
             errors.append(f'El usuario con id {userId} ya tiene una relación con el proceso {process.name} y el rol {role.idRole.name}')
             continue
-          #elif quality:
-          else:
-            relation = ProcessUserCerprunsaRelation.objects.create(
-              idUserCeprunsa=user,
-              idProcess=process,
-              idRole=role.idRole,
-              #idCourse=course or None,
-              startDate = process.dateStart,
-              endDate = process.dateEnd,
-              #quality=quality or None
-            )
-            createdRelations.append(relation)
+          
+          course = None
+          if role.idRole.name == 'Servidor de Enseñanza':
+            courseRelation = CourseTeacherRelation.objects.filter(teacher=user)
+            
+            if not courseRelation:
+              errors.append(f'El usuario con id {userId} y rol {role.idRole.name} no tiene un curso asignado')
+              continue
+            
+            else:
+              idCourse = CourseTeacherRelation.objects.get(teacher=user).course
+              course = Course.objects.get(id=idCourse.id)
+          
+          elif role.idRole.name == 'Coordinador' or role.idRole.name == 'Sub-coordinador':
+            course = Course.objects.filter(coordinator=user) or Course.objects.filter(subCoordinator=user)
+            if not course:
+              errors.append(f'El usuario con id {userId} y rol {role.idRole.name} no tiene un curso asignado')
+              continue
+          
+          
+          
+          relation = ProcessUserCerprunsaRelation.objects.create(
+            idUserCeprunsa=user,
+            idProcess=process,
+            idRole=role.idRole,
+            idCourse= course,
+            startDate = process.dateStart,
+            endDate = process.dateEnd,
+            quality=quality
+          )
+          createdRelations.append(relation)
             
       except ObjectDoesNotExist:
         errors.append(f'El usuario con id {userId} no existe')
@@ -162,6 +179,64 @@ class ProcessUserCerprunsaRelationListCreateView(APIView):
       {'created': serializer.data,
        'errors': errors},
       status=status.HTTP_201_CREATED if createdRelations else status.HTTP_400_BAD_REQUEST)
+
+#==============================================================================
+#API para ver, editar y eliminar relaciones entre usuarios y procesos por id
+#==============================================================================
+class ProcessUserCeprunsaRelationDetailView(APIView):
+  #permission_classes = [IsAuthenticated]
+  
+  #método para obtener una relación por id reusable
+  def get_object(self, pk):
+    try:
+      return ProcessUserCerprunsaRelation.objects.get(id=pk)
+    except ObjectDoesNotExist:
+      return None
+  
+  #obtención de una relación por id
+  @extend_schema(
+    summary="Ver relación por id",
+    description="Muestra una relación entre usuario y proceso con sus datos.",
+    responses={200: ProcessUserCerprunsaRelationDetailSerializer}
+  )
+  def get(self, request, pk):
+    relation = self.get_object(pk)
+    if not relation:
+      return Response({'message': 'Relación no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = ProcessUserCerprunsaRelationDetailSerializer(relation)
+    return Response(serializer.data)
+  
+  #actualización de una relación por id
+  @extend_schema(
+    summary="Editar relación por id",
+    description="Edita una relación entre usuario y proceso con sus datos.",
+    request=ProcessUserCerprunsaRelationSerializer,
+    responses={200: ProcessUserCerprunsaRelationSerializer}
+  )
+  def put(self, request, pk):
+    relation = self.get_object(pk)
+    if not relation:
+      return Response({'message': 'Relación no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = ProcessUserCerprunsaRelationSerializer(relation, data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
+  #eliminación de una relación por id
+  @extend_schema(
+    summary="Eliminar relación por id",
+    description="Elimina una relación entre usuario y proceso.",
+    responses={204: 'No Content'}
+  )
+  def delete(self, request, pk):
+    relation = self.get_object(pk)
+    if not relation:
+      return Response({'message': 'Relación no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    relation.registerState = '*'
+    relation.save()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 #==============================================================================

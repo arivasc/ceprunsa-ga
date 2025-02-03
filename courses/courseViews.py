@@ -133,15 +133,31 @@ class CourseTeacherRelationCreateView(APIView):
 #==============================================================================
 
 class CourseCreateView(APIView):
-  permission_classes = [IsAuthenticated]
+  #permission_classes = [IsAuthenticated]
   
   @extend_schema(
     summary="Crear curso",
     description="Crea un curso con sus datos",
     request=CourseSerializer,
-    responses={201: CourseSerializer}
+    responses={201: CourseSerializer,
+               400: "Error al crear el curso",
+               400: "El usuario no tiene el rol de coordinador",
+               400: "El usuario no tiene el rol de sub-coordinador"}
   )
   def post(self, request):
+    coordinator = request.data.get('coordinator')
+    if coordinator:
+      rol = UserCeprunsaRoleRelation.objects.filter(idUser=coordinator, idRole=4, registerState='A').exists()
+      if not rol:
+        return Response({'message': f'El usuario con id {coordinator} no tiene el rol de coordinador'},
+                        status=status.HTTP_400_BAD_REQUEST)
+    subCoordinator = request.data.get('subCoordinator')
+    if subCoordinator:
+      rol = UserCeprunsaRoleRelation.objects.filter(idUser=subCoordinator, idRole=5, registerState='A').exists()
+      if not rol:
+        return Response({'message': f'El usuario con id {subCoordinator} no tiene el rol de sub-coordinador'},
+                        status=status.HTTP_400_BAD_REQUEST)
+        
     serializer = CourseSerializer(data=request.data)
     if serializer.is_valid():
       serializer.save()
@@ -181,7 +197,8 @@ class CourseDetailView(APIView):
   @extend_schema(
     summary="Ver curso por id",
     description="Muestra un curso por su id",
-    responses={200: DetailedCourseSerializer}
+    responses={200: DetailedCourseSerializer,
+               404: 'Curso no encontrado'},
   )
   def get(self, request, pk):
     course = self.get_object(pk)
@@ -194,12 +211,30 @@ class CourseDetailView(APIView):
     summary="Editar curso por id",
     description="Edita un curso por su id",
     request=CourseSerializer,
-    responses={200: CourseSerializer}
+    responses={200: CourseSerializer,
+               400: "Error al editar el curso",
+               400: "El usuario no tiene el rol de coordinador",
+               400: "El usuario no tiene el rol de sub-coordinador",
+               404: 'Curso no encontrado'}
   )
   def put(self, request, pk):
     course = self.get_object(pk)
     if not course:
       return Response({'message': 'Curso no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    
+    coordinator = request.data.get('coordinator')
+    if coordinator:
+      rol = UserCeprunsaRoleRelation.objects.filter(idUser=coordinator, idRole=4, registerState='A').exists()
+      if not rol:
+        return Response({'message': f'El usuario con id {coordinator} no tiene el rol de coordinador'},
+                        status=status.HTTP_400_BAD_REQUEST)
+    subCoordinator = request.data.get('subCoordinator')
+    if subCoordinator:
+      rol = UserCeprunsaRoleRelation.objects.filter(idUser=subCoordinator, idRole=5, registerState='A').exists()
+      if not rol:
+        return Response({'message': f'El usuario con id {subCoordinator} no tiene el rol de sub-coordinador'},
+                        status=status.HTTP_400_BAD_REQUEST)
+        
     serializer = CourseSerializer(course, data=request.data)
     if serializer.is_valid():
       serializer.save()
@@ -210,7 +245,8 @@ class CourseDetailView(APIView):
   @extend_schema(
     summary="Eliminar curso por id",
     description="Elimina un curso por su id",
-    responses={204: 'Curso eliminado'}
+    responses={204: 'Curso eliminado',
+               404: 'Curso no encontrado'}
   )
   def delete(self, request, pk):
     course = self.get_object(pk)

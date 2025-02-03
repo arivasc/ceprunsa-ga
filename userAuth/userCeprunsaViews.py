@@ -7,7 +7,7 @@ from userAuth.serializers import UserCeprunsaRolesAndInfosCreateSerializer, User
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.openapi import OpenApiParameter
 
@@ -44,10 +44,86 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
   @extend_schema(
-    summary="Listar usuarios Ceprunsa",
-    description="Lista todos los usuarios Ceprunsa con algunos datos personales y roles",
-    responses={200: UserCeprunsaSimpleListSerializer(many=True)},
-    methods=['GET']
+    summary="Listar usuarios Ceprunsa con opción de filtro por rol",
+    description=(
+      "Devuelve una lista de usuarios Ceprunsa con datos básicos, "
+      "y permite filtrar por un rol específico si se proporciona el ID del rol en el cuerpo de la solicitud. "
+      "Si no se especifica un rol, se devuelven todos los usuarios activos. "
+      "Los usuarios con estado de registro inactivo ('*') siempre se excluyen."
+    ),
+    request={
+      "application/json": {
+        'type': 'object',
+        'properties': {
+          'role': {
+            'type': 'string',
+            'description': "ID del rol por el cual filtrar los usuarios (opcional)."
+          },
+        },
+        'required': ["role"],
+        "example": {"role": "1"},
+      }
+    },
+    responses={
+      200: OpenApiExample(
+        "Usuarios listados exitosamente",
+        value={
+          "results": [
+          {
+              "id": 1,
+              "username": "jdoe",
+              "email": "jdoe@example.com",
+              "firstName": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {"id": 2, "name": "Docente"},
+                  {"id": 3, "name": "Supervisor"}
+              ],
+            },
+            {
+              "id": 2,
+              "username": "asmith",
+              "email": "asmith@example.com",
+              "firstName": "Anna",
+              "lastName": "Smith",
+              "roles": [{"id": 4, "name": "Coordinador"}],
+            },
+          ]
+        },
+      ),
+      400: OpenApiExample(
+        "Solicitud inválida",
+        value={
+          "detail": "El ID del rol debe ser un número entero válido.",
+        },
+      ),
+    },
+    examples=[
+      OpenApiExample(
+          "Ejemplo de solicitud con filtro por rol",
+          value={"role": 2},
+          request_only=True,
+      ),
+      OpenApiExample(
+        "Ejemplo de respuesta sin filtro",
+        value={
+          "results": [
+            {
+              "id": 1,
+              "username": "jdoe",
+              "email": "jdoe@example.com",
+              "firstName": "John",
+              "lastName": "Doe",
+              "roles": [
+                {"id": 2, "name": "Docente"},
+                {"id": 3, "name": "Supervisor"}
+              ],
+            }
+          ]
+        },
+        response_only=True,
+      ),
+    ],
   )
   def get(self, request):
     roleId = request.data.get('role', None)
