@@ -4,9 +4,12 @@ from processes.processViews import (
   ProcessUserCeprunsaRelationListCreateView,
   ProcessUserCeprunsaRelationDetailView)
 
+from processes.observationViews import ObservationListCreateView
+
 urlpatterns = [
   path('processes', ProcessListCreateView.as_view(), name='processes'),
   path('processes/<int:pk>', ProcessDetailView.as_view(), name='process-detail'),
   path('process-user/<int:pk>', ProcessUserCeprunsaRelationListCreateView.as_view(), name='process-user'),
   path('process-user/relation/<int:pk>', ProcessUserCeprunsaRelationDetailView.as_view(), name='process-user-relation'),
+  path('observations', ObservationListCreateView.as_view(), name='observations')
 ]
