@@ -2,6 +2,7 @@ from userAuth.models import UserCeprunsa
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 
 from userAuth.serializers import UserCeprunsaRolesAndInfosCreateSerializer, UserCeprunsaDetailSerializer, UserCeprunsaSimpleListSerializer, UserCeprunsaToEditSerializer
 from rest_framework import status
@@ -132,7 +133,15 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     userceprunsarolerelation__registerState='A').all().exclude(registerState='*').order_by('-id')
     else:
       users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').all().exclude(registerState='*').order_by('-id')
-    serializer = UserCeprunsaSimpleListSerializer(users, many=True)
+    
+    pagination = PageNumberPagination()
+    pagination.page_size = 10
+    
+    paginatedUsers = pagination.paginate_queryset(users, request)
+    
+    serializer = UserCeprunsaSimpleListSerializer(paginatedUsers, many=True)
+    
+    
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
