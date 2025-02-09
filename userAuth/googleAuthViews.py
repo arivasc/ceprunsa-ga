@@ -1,5 +1,6 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 from userAuth.models import UserCeprunsa
+from userInfo.models import UserCeprunsaPersonalInfo
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -119,6 +120,7 @@ class GoogleAuthView(APIView):
       email = google_user['email']
       try:
         user = UserCeprunsa.objects.get(email=email, registerState='A')
+        personalInfo = UserCeprunsaPersonalInfo.objects.get(idUser=user)
         
         roles = UserCeprunsaRoleRelation.objects.filter(idUser=user, registerState='A').values('idRole__name')
         
@@ -132,7 +134,8 @@ class GoogleAuthView(APIView):
         # Información adicional del usuario
         user_data = {
           'email': user.email,
-          'name': google_user['name'],
+          'name': personalInfo.name,
+          'lastName': personalInfo.lastName,
           'picture': google_user['picture'],
           'id': user.id
         }
