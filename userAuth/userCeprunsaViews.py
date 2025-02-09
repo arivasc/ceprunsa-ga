@@ -142,7 +142,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     serializer = UserCeprunsaSimpleListSerializer(paginatedUsers, many=True)
     
     
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    return pagination.get_paginated_response(serializer.data)
 
 
 #==============================================================================
