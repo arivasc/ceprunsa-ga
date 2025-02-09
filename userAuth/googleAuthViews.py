@@ -134,8 +134,8 @@ class GoogleAuthView(APIView):
         # Información adicional del usuario
         user_data = {
           'email': user.email,
-          'name': personalInfo.name,
-          'lastName': personalInfo.lastName,
+          'name': personalInfo.names,
+          'lastName': personalInfo.lastNames,
           'picture': google_user['picture'],
           'id': user.id
         }
