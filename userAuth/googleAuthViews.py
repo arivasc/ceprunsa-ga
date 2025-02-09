@@ -120,7 +120,7 @@ class GoogleAuthView(APIView):
       email = google_user['email']
       try:
         user = UserCeprunsa.objects.get(email=email, registerState='A')
-        personalInfo = UserCeprunsaPersonalInfo.objects.get(idUser=user)
+        personalInfo = UserCeprunsaPersonalInfo.objects.get(idUserCeprunsa=user)
         
         roles = UserCeprunsaRoleRelation.objects.filter(idUser=user, registerState='A').values('idRole__name')
         
