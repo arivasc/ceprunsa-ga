@@ -127,13 +127,16 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     ],
   )
   def get(self, request):
-    roleId = request.data.get('role', None)
-    if roleId:
+    roleId = request.query_params.get('role', None)
+    search = request.query_params.get('search', None)
+    if not roleId:
+      users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').all().exclude(registerState='*').order_by('id')
+    else:
       users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').filter(userceprunsarolerelation__idRole=roleId,
     userceprunsarolerelation__registerState='A').all().exclude(registerState='*').order_by('id')
-    else:
-      users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').all().exclude(registerState='*').order_by('id')
     
+    if search:
+      users = users.filter(userceprunsapersonalinfo__names__icontains=search) | users.filter(userceprunsapersonalinfo__lastNames__icontains=search)
     pagination = PageNumberPagination()
     pagination.page_size = 30
     
