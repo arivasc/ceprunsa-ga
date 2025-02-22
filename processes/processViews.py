@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
@@ -65,19 +66,43 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
   
   @extend_schema(
     summary="Mostrar relaciones usuarios-proceso",
-    description="Muestra todas las relaciones entre usuarios y un proceso. Para incluir relaciones eliminadas, se debe especificar '?includeAll=true'.",
-    responses={200: ProcessUserCerprunsaRelationsListSerializer(many=True)}
+    description="Muestra todas las relaciones entre usuarios y un proceso."+
+    "\nPara incluir relaciones eliminadas, se debe especificar '?includeAll=true'"+
+    "\nPara incluir roles usar ?role=#."+
+    "\nPara buscar por nombre o apellido usar ?search=cadena"+
+    "\nPara usar varios parámetros, separarlos con &.",
+    responses={200: ProcessUserCerprunsaRelationsListSerializer(many=True), 404: "No hay relaciones para este proceso con los parámetros dados"}
   )
   def get(self, request, pk):
     includeAll = request.query_params.get('includeAll', 'false').lower() == 'true'
+    role = request.query_params.get('role', None)
+    search = request.query_params.get('search', None)
     
     if includeAll:
       relations = ProcessUserCerprunsaRelation.objects.filter(idProcess=pk)
     else:
       relations = ProcessUserCerprunsaRelation.objects.filter(idProcess=pk).exclude(registerState='*')
+      
+    if role:
+      relations = relations.filter(idRole=role)
     
-    serializer = ProcessUserCerprunsaRelationsListSerializer(relations, many=True)
-    return Response(serializer.data)
+    if search:
+      relations = relations.filter(
+        idUserCeprunsa__userceprunsapersonalinfo__names__icontains=search
+        ) | relations.filter(
+        idUserCeprunsa__userceprunsapersonalinfo__lastNames__icontains=search
+        )
+    
+    if not relations:
+      return Response({'message': 'No hay relaciones para este proceso con los parámetros dados'}, status=status.HTTP_404_NOT_FOUND)
+    pagination = PageNumberPagination()
+    pagination.page_size = 30
+    
+    paginatedUsers = pagination.paginate_queryset(relations, request)
+    
+    serializer = ProcessUserCerprunsaRelationsListSerializer(paginatedUsers, many=True)
+    
+    return pagination.get_paginated_response(serializer.data)
   
   @extend_schema(
     summary="Asignar usuarios a un proceso",
