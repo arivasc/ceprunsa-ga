@@ -2,13 +2,15 @@ from django.urls import path
 from processes.processViews import (
   ProcessListCreateView, ProcessDetailView,
   ProcessUserCeprunsaRelationListCreateView,
-  ProcessUserCeprunsaRelationDetailView)
+  ProcessUserCeprunsaRelationDetailView,
+  ProcessStateChangeView)
 
 from processes.observationViews import ObservationListCreateView
 
 urlpatterns = [
   path('processes', ProcessListCreateView.as_view(), name='processes'),
   path('processes/<int:pk>', ProcessDetailView.as_view(), name='process-detail'),
+  path('processes/change-state/<int:pk>', ProcessStateChangeView.as_view(), name='process-change-state'),
   path('process-user/<int:pk>', ProcessUserCeprunsaRelationListCreateView.as_view(), name='process-user'),
   path('process-user/relation/<int:pk>', ProcessUserCeprunsaRelationDetailView.as_view(), name='process-user-relation'),
   path('observations', ObservationListCreateView.as_view(), name='observations')

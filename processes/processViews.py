@@ -16,6 +16,46 @@ from rest_framework.views import APIView
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
+#==============================================================================
+#API para cambiar el estado de un proceso
+#==============================================================================
+class ProcessStateChangeView(APIView):
+  #permission_classes = [IsAuthenticated]
+  @extend_schema(
+    summary="Cambiar estado de un proceso",
+    description="Cambia el estado de un proceso a uno nuevo especificado.",
+    request={
+      "application/json": {
+        "type": "object",
+        "properties": {
+          "newState": {
+            "type": "string",
+            "description": "Nuevo estado del proceso.",
+          },
+        },
+        "required": ["newState"],
+        "example": {"newState": "C"},
+      }
+    },
+    responses={200: {"message": "Estado del proceso modificado"},
+               404: {"message": "Proceso no encontrado"},
+               400: {"message": "Debe especificar un nuevo estado"}}
+  )
+  def post(self, request, pk):
+    
+    process = Process.objects.get(id=pk)
+    if not process:
+      return Response({'message': 'Proceso no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    newState = request.data.get('newState', 'Z').upper()
+    if newState == 'Z':
+      return Response({'message': 'Debe especificar un nuevo estado'},
+                      status=status.HTTP_400_BAD_REQUEST
+      )
+    else:
+      process.registerState = newState
+      process.save()
+      return Response({'message': 'Estado del proceso modificado'}, status=status.HTTP_200_OK)
+
 
 #==============================================================================
 #API para listar y crear relaciones entre usuarios y procesos
