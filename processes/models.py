@@ -5,7 +5,7 @@ import json
 
 class Process(models.Model):
   name = models.CharField(max_length=63, unique=True)
-  description = models.CharField(max_length=100)
+  description = models.TextField()
   yearOfEntry = models.CharField(max_length=4, db_column='year_of_entry')
   yearProcess = models.CharField(max_length=4, db_column='year_process')
   dateStart = models.DateField(db_column='date_start')
@@ -13,7 +13,7 @@ class Process(models.Model):
   importantDates = models.TextField(db_column='important_dates')
   shifts = models.TextField()
   processType = models.CharField(max_length=1, db_column='process_type')
-  registerState = models.CharField(max_length=1, default='A', db_column='register_state')
+  registerState = models.CharField(max_length=1, default='P', db_column='register_state')
   
   def clean(self):
     for field in ['importantDates', 'shifts']:

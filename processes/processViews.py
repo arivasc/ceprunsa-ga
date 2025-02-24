@@ -309,7 +309,7 @@ class ProcessUserCeprunsaRelationDetailView(APIView):
 #==============================================================================
 
 class ProcessListCreateView(APIView):
-  permission_classes = [IsAuthenticated]
+  #permission_classes = [IsAuthenticated]
   
   @extend_schema(
     summary="Mostrar procesos",
