@@ -207,7 +207,9 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
             continue
           
           course = None
+          print(role.idRole.name)
           if role.idRole.name == 'Servidor de Enseñanza':
+            print('Servidor de Enseñanza')
             courseRelation = CourseTeacherRelation.objects.filter(teacher=user)
             
             if not courseRelation:
@@ -219,7 +221,8 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
               course = Course.objects.get(id=idCourse.id)
           
           elif role.idRole.name == 'Coordinador' or role.idRole.name == 'Sub-coordinador':
-            course = Course.objects.filter(coordinator=user) or Course.objects.filter(subCoordinator=user)
+            print('Coordinador o Sub-coordinador')
+            course = Course.objects.get(coordinator=user) if Course.objects.get(coordinator=user) else Course.objects.get(subCoordinator=user)
             if not course:
               errors.append(f'El usuario con id {userId} y rol {role.idRole.name} no tiene un curso asignado')
               continue
