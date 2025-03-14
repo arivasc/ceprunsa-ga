@@ -1,4 +1,5 @@
 from userAuth.models import UserCeprunsa
+from courses.models import Course
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -129,11 +130,28 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
   def get(self, request):
     roleId = request.query_params.get('role', None)
     search = request.query_params.get('search', None)
+    process = request.query_params.get('process', None)
+    notRelated = request.query_params.get('notRelated', None)
     if not roleId:
-      users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').all().exclude(registerState='*').order_by('id')
+      users = UserCeprunsa.objects.select_related(
+        'userceprunsapersonalinfo').all().exclude(registerState='*').order_by('id')
+      
     else:
-      users = UserCeprunsa.objects.select_related('userceprunsapersonalinfo').filter(userceprunsarolerelation__idRole=roleId,
-    userceprunsarolerelation__registerState='A').all().exclude(registerState='*').order_by('id')
+      users = UserCeprunsa.objects.select_related(
+        'userceprunsapersonalinfo').filter(
+        userceprunsarolerelation__idRole=roleId,
+        userceprunsarolerelation__registerState='A').all().exclude(registerState='*').order_by('id')
+        
+    if notRelated:
+      if roleId == 4:
+        coordIds = Course.objects.filter(coordinator__isnull=False).values_list('coordinator', flat=True)
+      elif roleId == 5:
+        coordIds = Course.objects.filter(subCoordinator__isnull=False).values_list('subCoordinator', flat=True)
+      elif roleId == 6:
+        users = users.filter
+        coordIds = Course.objects.filter(courseteacherrelation__isnull=False).values_list('courseteacherrelation__teacher', flat=True)
+      
+      users = users.exclude(id__in=coordIds)
     
     if search:
       users = users.filter(userceprunsapersonalinfo__names__icontains=search) | users.filter(userceprunsapersonalinfo__lastNames__icontains=search)

@@ -115,20 +115,12 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
     request={
       "application/json": {
         "type": "object",
-        "properties": {
-          "users": {
-              "type": "array",
-              "items": {"type": "integer"},
-              "description": "Lista de IDs de usuarios a asignar al proceso.",
-          },
-          "quality": {
-              "type": "string",
-              "description": "Nivel de calidad opcional para la relación.",
-              "nullable": True,
-          },
-        },
-        "required": ["users"],
-        "example": {"users": [1, 2, 3], "quality": "2"},
+        
+        "required": ["relations"],
+        "example": {"relations": [{
+          "userId":1,
+          "quality": "2"}]
+                    },
       }
     },
     responses={
@@ -164,10 +156,13 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
     examples=[
         OpenApiExample(
             "Ejemplo de solicitud",
-            value={
-                "users": [5, 10, 15],
-                "quality": "Alta",
-            },
+            value={"relations": [
+              {
+                "userId":1,
+                "quality": "2"
+              }
+              ]
+                    },
             request_only=True,
         ),
     ],
@@ -207,9 +202,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
             continue
           
           course = None
-          print(role.idRole.name)
           if role.idRole.name == 'Servidor de Enseñanza':
-            print('Servidor de Enseñanza')
             courseRelation = CourseTeacherRelation.objects.filter(teacher=user)
             
             if not courseRelation:
@@ -221,7 +214,6 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
               course = Course.objects.get(id=idCourse.id)
           
           elif role.idRole.name == 'Coordinador' or role.idRole.name == 'Sub-coordinador':
-            print('Coordinador o Sub-coordinador')
             course = Course.objects.get(coordinator=user) if Course.objects.get(coordinator=user) else Course.objects.get(subCoordinator=user)
             if not course:
               errors.append(f'El usuario con id {userId} y rol {role.idRole.name} no tiene un curso asignado')
