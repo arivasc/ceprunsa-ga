@@ -1,5 +1,6 @@
 from userAuth.models import UserCeprunsa
 from courses.models import Course
+from processes.models import ProcessUserCerprunsaRelation
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -9,7 +10,7 @@ from userAuth.serializers import UserCeprunsaRolesAndInfosCreateSerializer, User
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.openapi import OpenApiParameter
 
@@ -35,7 +36,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     summary="Crear usuario Ceprunsa",
     description="Crea un usuario Ceprunsa con sus roles, datos personales e información de pago",
     request=UserCeprunsaRolesAndInfosCreateSerializer,
-    responses={201: UserCeprunsaDetailSerializer}
+    responses={201: UserCeprunsaDetailSerializer, 400: "Error al crear el usuario"},
   )  
   def post(self, request):
     serializer = self.serializer_class(data=request.data)
@@ -46,26 +47,29 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
   @extend_schema(
-    summary="Listar usuarios Ceprunsa con opción de filtro por rol",
+    summary="Listar usuarios Ceprunsa con opción de filtro por rol, búsqueda y proceso",
     description=(
       "Devuelve una lista de usuarios Ceprunsa con datos básicos, "
-      "y permite filtrar por un rol específico si se proporciona el ID del rol en el cuerpo de la solicitud. "
-      "Si no se especifica un rol, se devuelven todos los usuarios activos. "
-      "Los usuarios con estado de registro inactivo ('*') siempre se excluyen."
+      "y permite filtrar por un rol específico, cadena de búsqueda y proceso en la url de la solicitud. "
+      "Los usuarios con estado de registro inactivo ('*') siempre se excluyen.\n\n"
+      "Antes de usar el primer filtro añadir a la url '?'.\n\n"
+      "Formato del filtro = **'?filtro1=valor1&filtro2=valor2&...'**. Todo junto sin espacios.\n\n"
+      "\n\nFiltros:\n\n"
+      "- role: ID del rol por el cual filtrar los usuarios (opcional). role=1-6\n\n"
+      "- search: Cadena de búsqueda para filtrar por nombres o apellidos (opcional). search=Pepito\n\n"
+      "- process: ID del proceso por el cual filtrar los usuarios no relacionados al proceso (opcional). process=id\n\n"
+      "- notRelated: Filtra los usuarios que no están relacionados con los cursos (opcional)."
+      " Para este filtro tambien añadir el rol a filtrar obligatorio. (4 para coordinador, 5 para subcoord y 6 para servidores de enseñanza). notRelated=true\n\n"
     ),
-    request={
-      "application/json": {
-        'type': 'object',
-        'properties': {
-          'role': {
-            'type': 'string',
-            'description': "ID del rol por el cual filtrar los usuarios (opcional)."
-          },
-        },
-        'required': ["role"],
-        "example": {"role": "1"},
-      }
-    },
+    parameters=[
+      OpenApiParameter(
+        name='role',
+        type=str,
+        examples=[
+          OpenApiExample("Filtrar por rol", value="2")
+        ]
+      )
+    ],
     responses={
       200: OpenApiExample(
         "Usuarios listados exitosamente",
@@ -125,6 +129,25 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
         },
         response_only=True,
       ),
+      OpenApiExample(
+        "Ejemplo de erro en la solicitud",
+        value={
+          "results": [
+            {
+              "id": 1,
+              "username": "jdoe",
+              "email": "jdoe@example.com",
+              "firstName": "John",
+              "lastName": "Doe",
+              "roles": [
+                {"id": 2, "name": "Docente"},
+                {"id": 3, "name": "Supervisor"}
+              ],
+            }
+          ]
+        },
+        response_only=True,
+      ),
     ],
   )
   def get(self, request):
@@ -141,16 +164,24 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
         'userceprunsapersonalinfo').filter(
         userceprunsarolerelation__idRole=roleId,
         userceprunsarolerelation__registerState='A').all().exclude(registerState='*').order_by('id')
+    
+    if process:
+      usersRelatedToProcess = ProcessUserCerprunsaRelation.objects.filter(idProcess=process).values_list('idUserCeprunsa', flat=True)
+      if usersRelatedToProcess:
+        users = users.exclude(id__in=usersRelatedToProcess)
         
     if notRelated:
-      if roleId == 4:
+      coordIds = []
+      if roleId == '4':
         coordIds = Course.objects.filter(coordinator__isnull=False).values_list('coordinator', flat=True)
-      elif roleId == 5:
+      elif roleId == '5':
         coordIds = Course.objects.filter(subCoordinator__isnull=False).values_list('subCoordinator', flat=True)
-      elif roleId == 6:
-        users = users.filter
+      elif roleId == '6':
+        #users = users.filter
+        print('entro')
         coordIds = Course.objects.filter(courseteacherrelation__isnull=False).values_list('courseteacherrelation__teacher', flat=True)
-      
+        print(coordIds)
+
       users = users.exclude(id__in=coordIds)
     
     if search:
