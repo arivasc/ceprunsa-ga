@@ -1,3 +1,6 @@
+from datetime import datetime
+from django.http import HttpResponse
+from processes.generateReportXlsx import generateReportProcess
 from processes.models import Process, ProcessUserCerprunsaRelation
 from userAuth.models import UserCeprunsa, UserCeprunsaRoleRelation
 from courses.models import CourseTeacherRelation, Course
@@ -66,11 +69,11 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
   
   @extend_schema(
     summary="Mostrar relaciones usuarios-proceso",
-    description="Muestra todas las relaciones entre usuarios y un proceso."+
-    "\nPara incluir relaciones eliminadas, se debe especificar '?includeAll=true'"+
-    "\nPara incluir roles usar ?role=#."+
-    "\nPara buscar por nombre o apellido usar ?search=cadena"+
-    "\nPara usar varios parámetros, separarlos con &.",
+    description="Muestra todas las relaciones entre usuarios y un proceso."
+    "\n\nPara incluir relaciones eliminadas, se debe especificar '?includeAll=true'"
+    "\n\nPara incluir roles usar ?role=#."
+    "\n\nPara buscar por nombre o apellido usar ?search=cadena"
+    "\n\nPara usar varios parámetros, separarlos con &.",
     responses={200: ProcessUserCerprunsaRelationsListSerializer(many=True), 404: "No hay relaciones para este proceso con los parámetros dados"}
   )
   def get(self, request, pk):
@@ -309,16 +312,43 @@ class ProcessListCreateView(APIView):
   @extend_schema(
     summary="Mostrar procesos",
     description="Muestra todos los procesos registrados.",
-    responses={200: DetailedProcessSerializer(many=True)}
+    
+    responses={200: DetailedProcessSerializer(many=True)},
+    parameters=[
+      OpenApiParameter(
+        name='excel',
+        required=False,
+        description='valores aceptados: true o false',
+        type=str,
+        location='query',
+        examples=[
+          OpenApiExample(
+            name='excel',
+            value='true'
+          )
+        ]
+      )
+    ]
   )
   def get(self, request):
     includeAll = request.query_params.get('includeAll', 'false').lower() == 'true'
+    excel = request.query_params.get('excel', 'false').lower() == 'true'
       
     if includeAll:
       processes = Process.objects.all()
     else:
       #filter = request.query_params.get('filter', 'A').upper()        
       processes = Process.objects.exclude(registerState='*')
+    
+    if excel:
+      excel_file = generateReportProcess(processes)
+      current_date = datetime.now().strftime('%d-%m-%Y')
+      filename = f"Lista de Procesos_{current_date}.xlsx"
+      response = HttpResponse(
+        excel_file.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      response['Content-Disposition'] = f'attachment; filename={filename}'
+      return response
       
     serializer = SimpleListProcessSerializer(processes, many=True)
     return Response(serializer.data)
