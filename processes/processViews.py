@@ -4,6 +4,7 @@ from processes.generateReportXlsx import generateReportProcess
 from processes.models import Process, ProcessUserCerprunsaRelation
 from userAuth.models import UserCeprunsa, UserCeprunsaRoleRelation
 from courses.models import CourseTeacherRelation, Course
+from userInfo.models import UserCeprunsaPersonalInfo
 from processes.serializers import (
   DetailedProcessSerializer,
   SimpleListProcessSerializer,
@@ -187,6 +188,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
       
       userId = relation['userId']
       quality = relation.get('quality', 'A')
+      
       try:
         user = UserCeprunsa.objects.get(id=userId, registerState='A')
         print(user.email)
@@ -194,14 +196,21 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
         
         
         if not hasRoles:
-          errors.append(f'El usuario con id {userId} no tiene roles asignados')
+          print()
+          names = UserCeprunsaPersonalInfo.objects.get(
+            idUserCeprunsa=userId).names + " " + UserCeprunsaPersonalInfo.objects.get(
+              idUserCeprunsa=userId).lastNames
+          errors.append(f'El usuario con id {userId} y nombres {names} no tiene roles asignados')
           continue
         
         for role in hasRoles:
           relation = ProcessUserCerprunsaRelation.objects.filter(idUserCeprunsa=user, idProcess=process, idRole=role.idRole)
           
           if relation:
-            errors.append(f'El usuario con id {userId} ya tiene una relación con el proceso {process.name} y el rol {role.idRole.name}')
+            names = UserCeprunsaPersonalInfo.objects.get(
+              idUserCeprunsa=userId).names + " " + UserCeprunsaPersonalInfo.objects.get(
+                idUserCeprunsa=userId).lastNames
+            errors.append(f'El usuario con id {userId} y nombres {names} ya tiene una relación con el proceso {process.name} con el rol {role.idRole.name}')
             continue
           
           course = None
@@ -209,7 +218,10 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
             courseRelation = CourseTeacherRelation.objects.filter(teacher=user)
             
             if not courseRelation:
-              errors.append(f'El usuario con id {userId} y rol {role.idRole.name} no tiene un curso asignado')
+              names = UserCeprunsaPersonalInfo.objects.get(
+              idUserCeprunsa=userId).names + " " + UserCeprunsaPersonalInfo.objects.get(
+                idUserCeprunsa=userId).lastNames
+              errors.append(f'El usuario con id {userId}, nombres {names} y rol {role.idRole.name} no tiene un curso asignado')
               continue
             
             else:
@@ -219,7 +231,10 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
           elif role.idRole.name == 'Coordinador' or role.idRole.name == 'Sub-coordinador':
             course = Course.objects.get(coordinator=user) if Course.objects.get(coordinator=user) else Course.objects.get(subCoordinator=user)
             if not course:
-              errors.append(f'El usuario con id {userId} y rol {role.idRole.name} no tiene un curso asignado')
+              names = UserCeprunsaPersonalInfo.objects.get(
+              idUserCeprunsa=userId).names + " " + UserCeprunsaPersonalInfo.objects.get(
+                idUserCeprunsa=userId).lastNames
+              errors.append(f'El usuario con id {userId}, nombres {names} y rol {role.idRole.name} no tiene un curso asignado')
               continue
           
           
