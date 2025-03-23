@@ -71,19 +71,69 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
   @extend_schema(
     summary="Mostrar relaciones usuarios-proceso",
     description="Muestra todas las relaciones entre usuarios y un proceso."
+    "\n\nPara obtener solo relaciones relacionadas a un usuario, se debe usar ?userId=#. Esto ignorará el parámetro pk, tampoco usar los demás parámetros."
     "\n\nPara incluir relaciones eliminadas, se debe especificar '?includeAll=true'"
     "\n\nPara incluir roles usar ?role=#."
     "\n\nPara buscar por nombre o apellido usar ?search=cadena"
     "\n\nPara usar varios parámetros, separarlos con &.",
-    responses={200: ProcessUserCerprunsaRelationsListSerializer(many=True), 404: "No hay relaciones para este proceso con los parámetros dados"}
+    responses={200: ProcessUserCerprunsaRelationsListSerializer(many=True),
+               404: "No hay relaciones para este proceso con los parámetros dados",
+               404: "No se encontraron relaciones con ese id de usuario"},
+    parameters=[
+      OpenApiParameter(
+        name='role',
+        required=False,
+        description='valores aceptados: 1-8',
+        type=str,
+        location='query',
+        examples=[
+          OpenApiExample(
+            name='role',
+            value='4'
+          )
+        ]
+      ),
+      OpenApiParameter(
+        name='search',
+        required=False,
+        description='valores aceptados: nombres o apellidos',
+        type=str,
+        location='query',
+        examples=[
+          OpenApiExample(
+            name='search',
+            value='Juan'
+          )
+        ]
+      ),
+      OpenApiParameter(
+        name='userId',
+        required=False,
+        description='valores aceptados: userId',
+        type=str,
+        location='query',
+        examples=[
+          OpenApiExample(
+            name='userId',
+            value='4'
+          )
+        ]
+      )
+    ]
   )
   def get(self, request, pk):
     includeAll = request.query_params.get('includeAll', 'false').lower() == 'true'
     role = request.query_params.get('role', None)
     search = request.query_params.get('search', None)
+    userId = request.query_params.get('userId', None)
     
     if includeAll:
       relations = ProcessUserCerprunsaRelation.objects.filter(idProcess=pk)
+    elif userId:
+      try:
+        relations = ProcessUserCerprunsaRelation.objects.filter(idUserCeprunsa=userId)
+      except ObjectDoesNotExist:
+        return Response({'message': 'No se encontraron relaciones con ese id de usuario'}, status=status.HTTP_404_NOT_FOUND)
     else:
       relations = ProcessUserCerprunsaRelation.objects.filter(idProcess=pk).exclude(registerState='*')
       
