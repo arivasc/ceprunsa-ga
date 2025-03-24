@@ -63,3 +63,56 @@ class ObservationListCreateView(APIView):
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
+#===============================================================
+# ObservationView para ver, actualizar y eliminar observaciones
+#===============================================================
+class ObservationDetailEditView(APIView):
+  #permission_classes = [IsAuthenticated]
+  
+  @extend_schema(
+    summary='Ver una observación',
+    description='Ver una observación por su ID.',
+    responses=ObservationDetailSerializer
+  )
+  def get(self, request, pk):
+    try:
+      observation = Observation.objects.get(pk=pk)
+    except ObjectDoesNotExist:
+      return Response({'message': 'No se encontró la observación con ese id.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = ObservationDetailSerializer(observation)
+    return Response(serializer.data)
+  
+  @extend_schema(
+    summary='Actualizar una observación',
+    description='Actualizar una observación por su ID.',
+    request=ObservationSerializer,
+    responses=ObservationSerializer
+  )
+  def patch(self, request, pk):
+    try:
+      observation = Observation.objects.get(pk=pk)
+    except ObjectDoesNotExist:
+      return Response({'message': 'No se encontró la observación con ese id.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = ObservationSerializer(observation, data=request.data, partial=True)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
+  @extend_schema(
+    summary='Eliminar una observación',
+    description='Eliminar una observación por su ID.',
+    responses={200: None}
+  )
+  def delete(self, request, pk):
+    try:
+      observation = Observation.objects.get(pk=pk)
+    except ObjectDoesNotExist:
+      return Response({'message': 'No se encontró la observación con ese id.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    observation.registerState = '*'
+    observation.save()
+    return Response(status=status.HTTP_204_NO_CONTENT)

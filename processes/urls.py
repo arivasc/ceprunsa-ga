@@ -5,7 +5,7 @@ from processes.processViews import (
   ProcessUserCeprunsaRelationDetailView,
   ProcessStateChangeView)
 
-from processes.observationViews import ObservationListCreateView
+from processes.observationViews import ObservationListCreateView, ObservationDetailEditView
 
 urlpatterns = [
   path('processes', ProcessListCreateView.as_view(), name='processes'),
@@ -13,5 +13,6 @@ urlpatterns = [
   path('processes/change-state/<int:pk>', ProcessStateChangeView.as_view(), name='process-change-state'),
   path('process-user/<int:pk>', ProcessUserCeprunsaRelationListCreateView.as_view(), name='process-user'),
   path('process-user/relation/<int:pk>', ProcessUserCeprunsaRelationDetailView.as_view(), name='process-user-relation'),
-  path('observations', ObservationListCreateView.as_view(), name='observations')
+  path('observations', ObservationListCreateView.as_view(), name='observations'),
+  path('observations/<int:pk>', ObservationDetailEditView.as_view(), name='observation-detail')
 ]
