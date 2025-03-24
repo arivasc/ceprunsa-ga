@@ -21,20 +21,20 @@ steps:
     id: Push
 
   # Paso 3 (Nuevo): Ejecutar migraciones (opcional)
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
-    args:
-      - run
-      - jobs
-      - create
-      - migrate-$_SERVICE_NAME
-      - '--image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
-      - '--set-env-vars=DB_HOST=/cloudsql/tu-instancia-conexion,DB_NAME=$$DB_NAME,DB_USER=$$DB_USER,DB_PASSWORD=$$DB_PASSWORD'
-      - '--command=python'
-      - '--args=manage.py,migrate'
-      - '--region=$_DEPLOY_REGION'
-      - '--add-cloudsql-instances=tu-instancia-conexion'
-    id: RunMigrations
-    entrypoint: gcloud
+  # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  #     args:
+  #       - run
+  #       - jobs
+  #       - create
+  #       - migrate-$_SERVICE_NAME
+  #       - '--image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+  #       - '--set-env-vars=DB_HOST=/cloudsql/tu-instancia-conexion,DB_NAME=$$DB_NAME,DB_USER=$$DB_USER,DB_PASSWORD=$$DB_PASSWORD'
+  #       - '--command=python'
+  #       - '--args=manage.py,migrate'
+  #       - '--region=$_DEPLOY_REGION'
+  #       - '--add-cloudsql-instances=tu-instancia-conexion'
+  #     id: RunMigrations
+  #     entrypoint: gcloud
 
   # Paso 4: Desplegar en Cloud Run (modificado para Cloud SQL)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
