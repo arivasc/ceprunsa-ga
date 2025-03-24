@@ -24,7 +24,8 @@ COPY . .
 
 
 # Exponer el puerto en el que correrá la app (usualmente 8000 o configurado en gunicorn)
-EXPOSE 8000
+EXPOSE 8080
 
 # Comando para correr gunicorn en producción
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "gestionAdministrativaCeprunsa.wsgi:application"]
+#CMD ["gunicorn", "--bind", "0.0.0.0:8080", "gestionAdministrativaCeprunsa.wsgi:application"]
+CMD python manage.py migrate && gunicorn your_project_name.wsgi:application --bind 0.0.0.0:8080
