@@ -2,7 +2,13 @@
 FROM python:3.12-slim
 
 # Instala dependencias del sistema necesarias
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev
+#RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev
+
+# Evita que Python genere archivos .pyc
+ENV PYTHONDONTWRITEBYTECODE 1
+
+# Hace que la salida de Python sea en tiempo real (sin buffering)
+ENV PYTHONUNBUFFERED 1
 
 # Establece el directorio de trabajo
 WORKDIR /app
