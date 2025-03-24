@@ -1,0 +1,76 @@
+steps:
+  # Paso 1: Construir la imagen (sin cambios)
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '--no-cache'
+      - '-t'
+      - >-
+        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - .
+      - '-f'
+      - Dockerfile
+    id: Build
+
+  # Paso 2: Subir la imagen (sin cambios)
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - >-
+        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+    id: Push
+
+  # Paso 3 (Nuevo): Ejecutar migraciones (opcional)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    args:
+      - run
+      - jobs
+      - create
+      - migrate-$_SERVICE_NAME
+      - '--image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--set-env-vars=DB_HOST=/cloudsql/tu-instancia-conexion,DB_NAME=$$DB_NAME,DB_USER=$$DB_USER,DB_PASSWORD=$$DB_PASSWORD'
+      - '--command=python'
+      - '--args=manage.py,migrate'
+      - '--region=$_DEPLOY_REGION'
+      - '--add-cloudsql-instances=tu-instancia-conexion'
+    id: RunMigrations
+    entrypoint: gcloud
+
+  # Paso 4: Desplegar en Cloud Run (modificado para Cloud SQL)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    args:
+      - run
+      - services
+      - update
+      - $_SERVICE_NAME
+      - '--platform=managed'
+      - >-
+        --image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - '--add-cloudsql-instances=sistema-rrhh-ceprunsa:us-central1:ceprunsa-ga'  # Conexión a Cloud SQL
+      - '--set-env-vars=DB_HOST=/cloudsql/sistema-rrhh-ceprunsa:us-central1:ceprunsa-ga,DB_NAME=$$DB_NAME,DB_USER=$$DB_USER,DB_PASSWORD=$$DB_PASSWORD'  # Variables de entorno
+      - >-
+        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
+      - '--region=$_DEPLOY_REGION'
+      - '--quiet'
+    id: Deploy
+    entrypoint: gcloud
+
+# El resto de tu configuración actual (images, options, substitutions, tags) se mantiene igual.
+images:
+  - >-
+    $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+options:
+  substitutionOption: ALLOW_LOOSE
+  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _AR_HOSTNAME: us-central1-docker.pkg.dev
+  _AR_REPOSITORY: cloud-run-source-deploy
+  _AR_PROJECT_ID: sistema-rrhh-ceprunsa
+  _PLATFORM: managed
+  _SERVICE_NAME: ceprunsa-ga-backend-dev
+  _DEPLOY_REGION: us-central1
+  _TRIGGER_ID: 9bf580d3-e6cb-4459-9606-b56538cb4c7f
+tags:
+  - gcp-cloud-build-deploy-cloud-run
+  - gcp-cloud-build-deploy-cloud-run-managed
+  - ceprunsa-ga-backend-dev
