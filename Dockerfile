@@ -27,5 +27,5 @@ COPY . .
 EXPOSE 8000
 
 # Comando para correr gunicorn en producción
-#CMD ["gunicorn", "--bind", "0.0.0.0:8080", "gestionAdministrativaCeprunsa.wsgi:application"]
-CMD python manage.py migrate && gunicorn gestionAdministrativaCeprunsa.wsgi:application --bind 0.0.0.0:8080
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "gestionAdministrativaCeprunsa.wsgi:application"]
+#CMD python manage.py migrate && gunicorn gestionAdministrativaCeprunsa.wsgi:application --bind 0.0.0.0:8080
