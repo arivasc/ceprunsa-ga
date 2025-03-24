@@ -24,7 +24,7 @@ COPY . .
 
 
 # Exponer el puerto en el que correrá la app (usualmente 8000 o configurado en gunicorn)
-EXPOSE 8080
+EXPOSE 8000
 
 # Comando para correr gunicorn en producción
 #CMD ["gunicorn", "--bind", "0.0.0.0:8080", "gestionAdministrativaCeprunsa.wsgi:application"]
