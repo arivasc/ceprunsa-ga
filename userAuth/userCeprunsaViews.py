@@ -1,6 +1,6 @@
 from userAuth.models import UserCeprunsa
 from courses.models import Course
-from processes.models import ProcessUserCerprunsaRelation
+from processes.models import ProcessUserCeprunsaRelation
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -166,7 +166,7 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
         userceprunsarolerelation__registerState='A').all().exclude(registerState='*').order_by('id')
     
     if process:
-      usersRelatedToProcess = ProcessUserCerprunsaRelation.objects.filter(idProcess=process).values_list('idUserCeprunsa', flat=True)
+      usersRelatedToProcess = ProcessUserCeprunsaRelation.objects.filter(idProcess=process).values_list('idUserCeprunsa', flat=True)
       if usersRelatedToProcess:
         users = users.exclude(id__in=usersRelatedToProcess)
         

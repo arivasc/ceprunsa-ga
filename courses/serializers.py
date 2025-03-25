@@ -12,8 +12,8 @@ class CourseSerializer(serializers.ModelSerializer):
     fields = ['id',
               'name',
               'description',
-              'coordinator',
-              'subCoordinator',
+              'idCoordinator',
+              'idSubCoordinator',
               'registerState'
               ]
 
@@ -86,7 +86,7 @@ class DetailedCourseSerializer(serializers.ModelSerializer):
 class CourseTeacherRelationSerializer(serializers.ModelSerializer):
   class Meta:
     model = CourseTeacherRelation
-    fields = ['id', 'course', 'teacher']
+    fields = ['id', 'idCourse', 'idTeacher']
     
 #================================================================
 # DetailedCourseTeacherRelationSerializer para obtener la relación

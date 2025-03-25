@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.http import HttpResponse
 from processes.generateReportXlsx import generateReportProcess
-from processes.models import Process, ProcessUserCerprunsaRelation
+from processes.models import Process, ProcessUserCeprunsaRelation
 from userAuth.models import UserCeprunsa, UserCeprunsaRoleRelation
 from courses.models import CourseTeacherRelation, Course
 from userInfo.models import UserCeprunsaPersonalInfo
@@ -128,14 +128,14 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
     userId = request.query_params.get('userId', None)
     
     if includeAll:
-      relations = ProcessUserCerprunsaRelation.objects.filter(idProcess=pk)
+      relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk)
     elif userId:
       try:
-        relations = ProcessUserCerprunsaRelation.objects.filter(idUserCeprunsa=userId)
+        relations = ProcessUserCeprunsaRelation.objects.filter(idUserCeprunsa=userId)
       except ObjectDoesNotExist:
         return Response({'message': 'No se encontraron relaciones con ese id de usuario'}, status=status.HTTP_404_NOT_FOUND)
     else:
-      relations = ProcessUserCerprunsaRelation.objects.filter(idProcess=pk).exclude(registerState='*')
+      relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk).exclude(registerState='*')
       
     if role:
       relations = relations.filter(idRole=role)
@@ -254,7 +254,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
           continue
         
         for role in hasRoles:
-          relation = ProcessUserCerprunsaRelation.objects.filter(idUserCeprunsa=user, idProcess=process, idRole=role.idRole)
+          relation = ProcessUserCeprunsaRelation.objects.filter(idUserCeprunsa=user, idProcess=process, idRole=role.idRole)
           
           if relation:
             names = UserCeprunsaPersonalInfo.objects.get(
@@ -289,7 +289,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
           
           
           
-          relation = ProcessUserCerprunsaRelation.objects.create(
+          relation = ProcessUserCeprunsaRelation.objects.create(
             idUserCeprunsa=user,
             idProcess=process,
             idRole=role.idRole,
@@ -317,7 +317,7 @@ class ProcessUserCeprunsaRelationDetailView(APIView):
   #método para obtener una relación por id reusable
   def get_object(self, pk):
     try:
-      return ProcessUserCerprunsaRelation.objects.get(id=pk)
+      return ProcessUserCeprunsaRelation.objects.get(id=pk)
     except ObjectDoesNotExist:
       return None
   

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from processes.models import Process, ProcessUserCerprunsaRelation, Observation
+from processes.models import Process, ProcessUserCeprunsaRelation, Observation
 import json
 
 #================================================================
@@ -14,7 +14,7 @@ class ObservationSerializer(serializers.ModelSerializer):
       'date',
       'observation',
       'document',
-      'registerBy',
+      'idRegisterBy',
       'registerState'
       ]
 
@@ -34,7 +34,7 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
       'processUserName',
       'date',
       'observation',
-      'registerBy',
+      'idRegisterBy',
       'namesRegisterBy',
       'document',
       'registerState'
@@ -84,7 +84,7 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
 #================================================================
 class ProcessUserCerprunsaRelationSerializer(serializers.ModelSerializer):
   class Meta:
-    model = ProcessUserCerprunsaRelation
+    model = ProcessUserCeprunsaRelation
     fields = [
       'id',
       'idUserCeprunsa',
@@ -113,7 +113,7 @@ class ProcessUserCerprunsaRelationDetailSerializer(serializers.ModelSerializer):
   courseName = serializers.SerializerMethodField()
   
   class Meta:
-    model = ProcessUserCerprunsaRelation
+    model = ProcessUserCeprunsaRelation
     fields = [
       'id',
       'idUserCeprunsa',
@@ -171,7 +171,7 @@ class ProcessUserCerprunsaRelationsListSerializer(serializers.ModelSerializer):
   courseName = serializers.SerializerMethodField()
   
   class Meta:
-    model = ProcessUserCerprunsaRelation
+    model = ProcessUserCeprunsaRelation
     fields = [
       'id',
       'idUserCeprunsa',

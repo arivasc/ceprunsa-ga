@@ -29,7 +29,7 @@ class Process(models.Model):
   class Meta:
     db_table = 'processes'
     
-class ProcessUserCerprunsaRelation(models.Model):
+class ProcessUserCeprunsaRelation(models.Model):
   idProcess = models.ForeignKey(
     Process,
     on_delete=models.CASCADE,
@@ -57,20 +57,20 @@ class ProcessUserCerprunsaRelation(models.Model):
   registerState = models.CharField(max_length=1, default='A', db_column='register_state')
   
   class Meta:
-    db_table = 'process_user_ceprunsa_relation'
+    db_table = 'process_user_ceprunsa_relations'
     
 
 class Observation(models.Model):
   idProcessUserCeprunsaRelation = models.ForeignKey(
-    ProcessUserCerprunsaRelation,
+    ProcessUserCeprunsaRelation,
     on_delete=models.CASCADE,
     db_column='id_process_user_ceprunsa_relation')
   date = models.DateField()
   observation = models.TextField()
-  registerBy = models.ForeignKey(
+  idRegisterBy = models.ForeignKey(
     UserCeprunsa,
     on_delete=models.CASCADE,
-    db_column='register_by')
+    db_column='id_register_by')
   document = models.FileField(upload_to='observations/', blank=True, null=True)
   registerState = models.CharField(max_length=1, default='A', db_column='register_state')
   

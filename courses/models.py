@@ -4,15 +4,16 @@ from userAuth.models import UserCeprunsa
 class Course(models.Model):
     name = models.CharField(max_length=63, unique=True)
     description = models.CharField(max_length=255)
-    coordinator = models.OneToOneField(
+    idCoordinator = models.OneToOneField(
         UserCeprunsa, on_delete=models.CASCADE,
         blank=True, null=True,
-        related_name='coordinator')
-    subCoordinator = models.OneToOneField(
+        db_column='id_coordinator',
+        related_name='idCoordinator')
+    idSubCoordinator = models.OneToOneField(
         UserCeprunsa, on_delete=models.CASCADE,
         blank=True, null=True,
-        db_column='sub_coordinator',
-        related_name='subCoordinator')
+        db_column='id_sub_coordinator',
+        related_name='idSubCoordinator')
     registerState = models.CharField(max_length=1, default='A', db_column='register_state')
     
     class Meta:
@@ -20,8 +21,8 @@ class Course(models.Model):
         
 
 class CourseTeacherRelation(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(UserCeprunsa, on_delete=models.CASCADE)
+    idCourse = models.ForeignKey(Course, on_delete=models.CASCADE, db_column='id_course')
+    idTeacher = models.ForeignKey(UserCeprunsa, on_delete=models.CASCADE, db_column='id_teacher')
     
     class Meta:
-        db_table = 'course_teacher_relation'
+        db_table = 'course_teacher_relations'

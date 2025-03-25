@@ -64,4 +64,4 @@ class UserCeprunsaRoleRelation(models.Model):
     registerState = models.CharField(max_length=1, default='A', db_column='register_state')
     
     class Meta:
-        db_table = 'users_ceprunsa_roles_relation'
+        db_table = 'user_ceprunsa_roles_relations'
