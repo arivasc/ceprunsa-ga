@@ -13,8 +13,8 @@ class UserCeprunsaPersonalInfo(models.Model):
   secondPhone = models.CharField(max_length=15, db_column='second_phone', blank=True, null=True)
   personalEmail = models.EmailField(max_length=100, db_column='personal_email', blank=True, null=True)
   cv = models.FileField(upload_to='cv/', db_column='cv', blank=True, null=True)
-  academicDegree = models.TextField(db_column='academic_degree', blank=True, null=True)
-  career = models.CharField(max_length=100, blank=True, null=True)
+  academicDegree = models.CharField(max_length=100, db_column='academic_degree', blank=True, null=True)
+  career = models.TextField(blank=True, null=True)
 
   class Meta:
     db_table = 'personal_informations'

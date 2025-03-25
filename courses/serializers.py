@@ -23,10 +23,8 @@ class CourseSerializer(serializers.ModelSerializer):
 #================================================================
 class DetailedCourseSerializer(serializers.ModelSerializer):
   
-  coordinatorId = serializers.IntegerField(source='coordinator.id', read_only=True)
   coordinatorNames = serializers.SerializerMethodField()
   
-  subCoordinatorId = serializers.IntegerField(source='subCoordinator.id', read_only=True)
   subCoordinatorNames = serializers.SerializerMethodField()
 
   class Meta:
@@ -35,15 +33,15 @@ class DetailedCourseSerializer(serializers.ModelSerializer):
       'id', 
       'name', 
       'description', 
-      'coordinatorId', 
+      'idCoordinator', 
       'coordinatorNames', 
-      'subCoordinatorId',
+      'idSubCoordinator',
       'subCoordinatorNames',
       'registerState'
     ]
 
   def get_coordinatorNames(self, obj):
-    coordinator = obj.coordinator
+    coordinator = obj.idCoordinator
     if coordinator and hasattr(coordinator, 'userceprunsapersonalinfo'):
       personal_info = coordinator.userceprunsapersonalinfo
       first_name = personal_info.names.split(' ')[0]
@@ -61,7 +59,7 @@ class DetailedCourseSerializer(serializers.ModelSerializer):
     return None
   
   def get_subCoordinatorNames(self, obj):
-    subCoordinator = obj.subCoordinator
+    subCoordinator = obj.idSubCoordinator
     if subCoordinator and hasattr(subCoordinator, 'userceprunsapersonalinfo'):
       personal_info = subCoordinator.userceprunsapersonalinfo
       first_name = personal_info.names.split(' ')[0]
