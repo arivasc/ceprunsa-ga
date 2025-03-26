@@ -92,7 +92,7 @@ class CourseTeacherRelationCreateView(APIView):
         if not hasRole:
           errors.append(f'El profesor con id {userId} no tiene el rol de profesor')
           continue
-        relation, created = CourseTeacherRelation.objects.get_or_create(course=course, teacher=teacher)
+        relation, created = CourseTeacherRelation.objects.get_or_create(idCourse=course, idTeacher=teacher)
         
         if created:
           createdRelations.append(relation)
@@ -113,7 +113,7 @@ class CourseTeacherRelationCreateView(APIView):
     responses={200: CourseTeacherRelationSerializer(many=True)}
   )
   def get(self, request, pk):
-    relations = CourseTeacherRelation.objects.filter(course=pk)
+    relations = CourseTeacherRelation.objects.filter(idCourse=pk)
     serializer = DetailedCourseTeacherRelationSerializer(relations, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
   

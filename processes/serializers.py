@@ -41,7 +41,7 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
       ]
   
   def get_namesRegisterBy(self, obj):
-    register_by = obj.registerBy
+    register_by = obj.idRegisterBy
     if register_by and hasattr(register_by, 'userceprunsapersonalinfo'):
       personal_info = register_by.userceprunsapersonalinfo
       first_name = personal_info.names.split(' ')[0]
