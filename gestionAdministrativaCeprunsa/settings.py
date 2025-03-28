@@ -14,6 +14,8 @@ from os import path
 from pathlib import Path
 from datetime import timedelta
 
+from google.oauth2 import service_account
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -137,6 +139,22 @@ USE_I18N = True
 
 USE_TZ = True
 
+
+#Google Cloud Storage settings
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = getenv('GS_BUCKET_NAME')
+GS_PROJECT_ID = getenv('GS_PROJECT_ID')
+GS_LOCAL = getenv('GS_LOCAL', 'False') == 'True'
+
+if GS_LOCAL:
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(path.join(BASE_DIR, 'credentials/gcs-credentials.json'))
+else:
+    GS_CREDENTIALS = None
+
+MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+MEDIA_ROOT = ""
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/

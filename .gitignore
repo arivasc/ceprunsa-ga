@@ -4,7 +4,7 @@
 data/
 database-test/data/
 
-
+credentials/
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,django
