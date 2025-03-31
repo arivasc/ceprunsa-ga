@@ -3,6 +3,21 @@ from processes.models import Process, ProcessUserCeprunsaRelation, Observation
 import json
 
 #================================================================
+# ProcessUserCeprunsaListSerializer para listar los procesos
+# de un usuario
+#================================================================
+class ProcessUserCeprunsaListSerializer(serializers.ModelSerializer):
+  processName = serializers.CharField(source='idProcess.name', read_only=True)
+  class Meta:
+    model = ProcessUserCeprunsaRelation
+    fields = [
+      'id',
+      'idProcess',
+      'processName',
+      'registerState'
+      ]
+
+#================================================================
 # ObservationSerializer para crear una observación
 #================================================================
 class ObservationSerializer(serializers.ModelSerializer):
@@ -82,7 +97,7 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
 # ProcessUserCerprunsaRelationSerializer para crear una relación
 # entre un usuario y un proceso
 #================================================================
-class ProcessUserCerprunsaRelationSerializer(serializers.ModelSerializer):
+class ProcessUserCeprunsaRelationSerializer(serializers.ModelSerializer):
   class Meta:
     model = ProcessUserCeprunsaRelation
     fields = [
@@ -105,7 +120,7 @@ class ProcessUserCerprunsaRelationSerializer(serializers.ModelSerializer):
 # ProcessUserCerprunsaRelationDetailSerializer para ver en detalle
 # la relacion entre usuario y proceso
 #================================================================
-class ProcessUserCerprunsaRelationDetailSerializer(serializers.ModelSerializer):
+class ProcessUserCeprunsaRelationDetailSerializer(serializers.ModelSerializer):
   
   userNames = serializers.SerializerMethodField()
   processName = serializers.CharField(source='idProcess.name', read_only=True)
@@ -160,7 +175,7 @@ class ProcessUserCerprunsaRelationDetailSerializer(serializers.ModelSerializer):
 # ProcessUserCerprunsaRelationListSerializer para listar las
 # relaciones entre usuarios y un proceso
 #================================================================
-class ProcessUserCerprunsaRelationsListSerializer(serializers.ModelSerializer):
+class ProcessUserCeprunsaRelationsListSerializer(serializers.ModelSerializer):
   
   userNames = serializers.CharField(source='idUserCeprunsa.userceprunsapersonalinfo.names', read_only=True)
   email = serializers.CharField(source='idUserCeprunsa.email', read_only=True)

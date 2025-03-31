@@ -8,9 +8,10 @@ from userInfo.models import UserCeprunsaPersonalInfo
 from processes.serializers import (
   DetailedProcessSerializer,
   SimpleListProcessSerializer,
-  ProcessUserCerprunsaRelationsListSerializer,
-  ProcessUserCerprunsaRelationSerializer,
-  ProcessUserCerprunsaRelationDetailSerializer)
+  ProcessUserCeprunsaRelationsListSerializer,
+  ProcessUserCeprunsaRelationSerializer,
+  ProcessUserCeprunsaRelationDetailSerializer,
+  ProcessUserCeprunsaListSerializer)
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -61,6 +62,32 @@ class ProcessStateChangeView(APIView):
       process.save()
       return Response({'message': 'Estado del proceso modificado'}, status=status.HTTP_200_OK)
 
+#==============================================================================
+#API para listar los procesos de un usuario
+#==============================================================================
+class ProcessUserCeprunsaListView(APIView):
+  #permission_classes = [IsAuthenticated]
+  
+  @extend_schema(
+    summary="Mostrar procesos de un usuario",
+    description="Muestra todos los procesos de un usuario. Envia el id del usuario como parámetro. url/id",
+    responses={200: ProcessUserCeprunsaListSerializer(many=True),
+               404: "No hay procesos para este usuario"},
+    
+  )
+  def get(self, request, pk):
+        
+    try:
+      relations = ProcessUserCeprunsaRelation.objects.filter(idUserCeprunsa=pk).exclude(registerState='*')
+    except ObjectDoesNotExist:
+      return Response({'message': 'No hay procesos para este usuario'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if not relations:
+      return Response({'message': 'No hay procesos para este usuario'}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = ProcessUserCeprunsaListSerializer(relations, many=True)
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 #==============================================================================
 #API para listar y crear relaciones entre usuarios y procesos
@@ -76,7 +103,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
     "\n\nPara incluir roles usar ?role=#."
     "\n\nPara buscar por nombre o apellido usar ?search=cadena"
     "\n\nPara usar varios parámetros, separarlos con &.",
-    responses={200: ProcessUserCerprunsaRelationsListSerializer(many=True),
+    responses={200: ProcessUserCeprunsaRelationsListSerializer(many=True),
                404: "No hay relaciones para este proceso con los parámetros dados",
                404: "No se encontraron relaciones con ese id de usuario"},
     parameters=[
@@ -154,7 +181,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
     
     paginatedUsers = pagination.paginate_queryset(relations, request)
     
-    serializer = ProcessUserCerprunsaRelationsListSerializer(paginatedUsers, many=True)
+    serializer = ProcessUserCeprunsaRelationsListSerializer(paginatedUsers, many=True)
     
     return pagination.get_paginated_response(serializer.data)
   
@@ -302,7 +329,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
             
       except ObjectDoesNotExist:
         errors.append(f'El usuario con id {userId} no existe')
-    serializer = ProcessUserCerprunsaRelationSerializer(createdRelations, many=True)
+    serializer = ProcessUserCeprunsaRelationSerializer(createdRelations, many=True)
     return Response(
       {'created': serializer.data,
        'errors': errors},
@@ -325,27 +352,27 @@ class ProcessUserCeprunsaRelationDetailView(APIView):
   @extend_schema(
     summary="Ver relación por id",
     description="Muestra una relación entre usuario y proceso con sus datos.",
-    responses={200: ProcessUserCerprunsaRelationDetailSerializer}
+    responses={200: ProcessUserCeprunsaRelationDetailSerializer}
   )
   def get(self, request, pk):
     relation = self.get_object(pk)
     if not relation:
       return Response({'message': 'Relación no encontrada'}, status=status.HTTP_404_NOT_FOUND)
-    serializer = ProcessUserCerprunsaRelationDetailSerializer(relation)
+    serializer = ProcessUserCeprunsaRelationDetailSerializer(relation)
     return Response(serializer.data)
   
   #actualización de una relación por id
   @extend_schema(
     summary="Editar relación por id",
     description="Edita una relación entre usuario y proceso con sus datos.",
-    request=ProcessUserCerprunsaRelationSerializer,
-    responses={200: ProcessUserCerprunsaRelationSerializer}
+    request=ProcessUserCeprunsaRelationSerializer,
+    responses={200: ProcessUserCeprunsaRelationSerializer}
   )
   def put(self, request, pk):
     relation = self.get_object(pk)
     if not relation:
       return Response({'message': 'Relación no encontrada'}, status=status.HTTP_404_NOT_FOUND)
-    serializer = ProcessUserCerprunsaRelationSerializer(relation, data=request.data)
+    serializer = ProcessUserCeprunsaRelationSerializer(relation, data=request.data)
     if serializer.is_valid():
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
