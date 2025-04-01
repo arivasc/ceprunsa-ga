@@ -47,7 +47,8 @@ steps:
       - >-
         --image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
       - '--add-cloudsql-instances=sistema-rrhh-ceprunsa:us-central1:ceprunsa-ga'  # Conexión a Cloud SQL
-      - '--set-env-vars=DB_HOST=/cloudsql/sistema-rrhh-ceprunsa:us-central1:ceprunsa-ga,DB_NAME=$$DB_NAME,DB_USER=$$DB_USER,DB_PASSWORD=$$DB_PASSWORD'  # Variables de entorno
+      - '--update-secrets=ALLOWED_HOSTS=ALLOWED_HOSTS:latest,CLIENT_ID=CLIENT_ID:latest,SECRET_KEY=SECRET_KEY:latest,DB_NAME=DB_NAME:latest,DB_USER=DB_USER:latest,DB_PASSWORD=DB_PASSWORD:latest'
+      - '--set-env-vars=DB_HOST=/cloudsql/sistema-rrhh-ceprunsa:us-central1:ceprunsa-ga,DEBUG=True,GS_BUCKET_NAME=ceprunsa-ga-storage-dev,GS_PROJECT_ID=sistema-rrhh-ceprunsa'  # Variables de entorno
       - >-
         --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
       - '--region=$_DEPLOY_REGION'
