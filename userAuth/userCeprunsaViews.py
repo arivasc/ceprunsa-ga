@@ -173,9 +173,9 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
     if notRelated:
       coordIds = []
       if roleId == '4':
-        coordIds = Course.objects.filter(coordinator__isnull=False).values_list('idCoordinator', flat=True)
+        coordIds = Course.objects.filter(idCoordinator__isnull=False).values_list('idCoordinator', flat=True)
       elif roleId == '5':
-        coordIds = Course.objects.filter(subCoordinator__isnull=False).values_list('idSubCoordinator', flat=True)
+        coordIds = Course.objects.filter(idSubCoordinator__isnull=False).values_list('idSubCoordinator', flat=True)
       elif roleId == '6':
         #users = users.filter
         print('entro')
