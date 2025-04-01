@@ -302,7 +302,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
               continue
             
             else:
-              idCourse = CourseTeacherRelation.objects.get(idTeacher=user).course
+              idCourse = CourseTeacherRelation.objects.get(idTeacher=user).idCourse
               course = Course.objects.get(id=idCourse.id)
           
           elif role.idRole.name == 'Coordinador' or role.idRole.name == 'Sub Coordinador':
