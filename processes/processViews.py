@@ -292,7 +292,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
           
           course = None
           if role.idRole.name == 'Servidor de Enseñanza':
-            courseRelation = CourseTeacherRelation.objects.filter(teacher=user)
+            courseRelation = CourseTeacherRelation.objects.filter(idTeacher=user)
             
             if not courseRelation:
               names = UserCeprunsaPersonalInfo.objects.get(
@@ -302,11 +302,11 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
               continue
             
             else:
-              idCourse = CourseTeacherRelation.objects.get(teacher=user).course
+              idCourse = CourseTeacherRelation.objects.get(idTeacher=user).course
               course = Course.objects.get(id=idCourse.id)
           
-          elif role.idRole.name == 'Coordinador' or role.idRole.name == 'Sub-coordinador':
-            course = Course.objects.get(coordinator=user) if Course.objects.get(coordinator=user) else Course.objects.get(subCoordinator=user)
+          elif role.idRole.name == 'Coordinador' or role.idRole.name == 'Sub Coordinador':
+            course = Course.objects.get(idCoordinator=user) if Course.objects.get(idCoordinator=user) else Course.objects.get(idSubCoordinator=user)
             if not course:
               names = UserCeprunsaPersonalInfo.objects.get(
               idUserCeprunsa=userId).names + " " + UserCeprunsaPersonalInfo.objects.get(

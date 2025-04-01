@@ -72,7 +72,7 @@ class Observation(models.Model):
     on_delete=models.CASCADE,
     db_column='id_register_by')
   document = models.FileField(upload_to='observations/', blank=True, null=True)
-  registerState = models.CharField(max_length=1, default='A', db_column='register_state')
+  registerState = models.CharField(max_length=1, default='N', db_column='register_state')
   
   class Meta:
     db_table = 'observations'
