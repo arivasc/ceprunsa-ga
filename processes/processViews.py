@@ -172,10 +172,10 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
         relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk, idRole=role).exclude(registerState='*')
         serializer = ProcessUserCeprunsaRelationsListSerializer(relations, many=True)
         excel_file = generateExcelReportUsersInProcessByRole(serializer.data)
-        current_date = timezone.now().strftime("%d-%m-%Y_%H'%M'%S")
+        current_date = timezone.now().strftime("%d-%m-%Y_%H%M%S")
         roleName = ProcessUserCeprunsaRelation.objects.filter(idRole=role).first().idRole.name
         processName = Process.objects.get(id=pk).name
-        filename = f"Lista de {roleName}s en el proceso {processName}_{current_date}.xlsx"
+        filename = f"{roleName} - {processName}_{current_date}.xlsx"
         response = HttpResponse(
           excel_file.getvalue(),
           content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
