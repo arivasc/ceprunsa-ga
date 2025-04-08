@@ -1,6 +1,6 @@
-from datetime import datetime
+from django.utils import timezone
 from django.http import HttpResponse
-from processes.generateReportXlsx import generateReportProcess
+from processes.generateReportXlsx import generateReportProcess, generateExcelReportUsersInProcessByRole
 from processes.models import Process, ProcessUserCeprunsaRelation
 from userAuth.models import UserCeprunsa, UserCeprunsaRoleRelation
 from courses.models import CourseTeacherRelation, Course
@@ -145,6 +145,19 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
             value='4'
           )
         ]
+      ),
+      OpenApiParameter(
+        name='excel',
+        required=False,
+        description='valores aceptados: true / false',
+        type=str,
+        location='query',
+        examples=[
+          OpenApiExample(
+            name='excel',
+            value='false'
+          )
+        ]
       )
     ]
   )
@@ -153,37 +166,56 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
     role = request.query_params.get('role', None)
     search = request.query_params.get('search', None)
     userId = request.query_params.get('userId', None)
-    
-    if includeAll:
-      relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk)
-    elif userId:
+    excel = request.query_params.get('excel', 'false').lower() == 'true'
+    if excel:
       try:
-        relations = ProcessUserCeprunsaRelation.objects.filter(idUserCeprunsa=userId)
+        relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk, idRole=role).exclude(registerState='*')
+        serializer = ProcessUserCeprunsaRelationsListSerializer(relations, many=True)
+        excel_file = generateExcelReportUsersInProcessByRole(serializer.data)
+        current_date = timezone.now().strftime("%d-%m-%Y_%H'%M'%S")
+        roleName = ProcessUserCeprunsaRelation.objects.filter(idRole=role).first().idRole.name
+        processName = Process.objects.get(id=pk).name
+        filename = f"Lista de {roleName}s en el proceso {processName}_{current_date}.xlsx"
+        response = HttpResponse(
+          excel_file.getvalue(),
+          content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return response
       except ObjectDoesNotExist:
-        return Response({'message': 'No se encontraron relaciones con ese id de usuario'}, status=status.HTTP_404_NOT_FOUND)
-    else:
-      relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk).exclude(registerState='*')
+        return Response({'message': 'No se encontraron relaciones para este proceso con el rol dado'}, status=status.HTTP_404_NOT_FOUND)
       
-    if role:
-      relations = relations.filter(idRole=role)
+    else:
     
-    if search:
-      relations = relations.filter(
-        idUserCeprunsa__userceprunsapersonalinfo__names__icontains=search
-        ) | relations.filter(
-        idUserCeprunsa__userceprunsapersonalinfo__lastNames__icontains=search
-        )
-    
-    if not relations:
-      return Response({'message': 'No hay relaciones para este proceso con los parámetros dados'}, status=status.HTTP_404_NOT_FOUND)
-    pagination = PageNumberPagination()
-    pagination.page_size = 30
-    
-    paginatedUsers = pagination.paginate_queryset(relations, request)
-    
-    serializer = ProcessUserCeprunsaRelationsListSerializer(paginatedUsers, many=True)
-    
-    return pagination.get_paginated_response(serializer.data)
+      if includeAll:
+        relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk)
+      elif userId:
+        try:
+          relations = ProcessUserCeprunsaRelation.objects.filter(idUserCeprunsa=userId)
+        except ObjectDoesNotExist:
+          return Response({'message': 'No se encontraron relaciones con ese id de usuario'}, status=status.HTTP_404_NOT_FOUND)
+      else:
+        relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk).exclude(registerState='*')
+        
+      if role:
+        relations = relations.filter(idRole=role)
+      
+      if search:
+        relations = relations.filter(
+          idUserCeprunsa__userceprunsapersonalinfo__names__icontains=search
+          ) | relations.filter(
+          idUserCeprunsa__userceprunsapersonalinfo__lastNames__icontains=search
+          )
+      
+      if not relations:
+        return Response({'message': 'No hay relaciones para este proceso con los parámetros dados'}, status=status.HTTP_404_NOT_FOUND)
+      pagination = PageNumberPagination()
+      pagination.page_size = 30
+      
+      paginatedUsers = pagination.paginate_queryset(relations, request)
+      
+      serializer = ProcessUserCeprunsaRelationsListSerializer(paginatedUsers, many=True)
+      
+      return pagination.get_paginated_response(serializer.data)
   
   @extend_schema(
     summary="Asignar usuarios a un proceso",
@@ -434,7 +466,7 @@ class ProcessListCreateView(APIView):
     
     if excel:
       excel_file = generateReportProcess(processes)
-      current_date = datetime.now().strftime('%d-%m-%Y')
+      current_date = timezone.now().strftime('%d-%m-%Y')
       filename = f"Lista de Procesos_{current_date}.xlsx"
       response = HttpResponse(
         excel_file.getvalue(),

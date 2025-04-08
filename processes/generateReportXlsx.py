@@ -1,4 +1,14 @@
 from openpyxl import Workbook
+from io import BytesIO
+
+USER_PROCESS_HEADER = [
+  'ID',
+  'Nombres',
+  'Apellidos',
+  'Número de documento',
+  'Correo electrónico',
+  'Curso'
+]
 
 REGISTER_STATE_MAP = {
   'A': 'Activo',
@@ -8,6 +18,45 @@ REGISTER_STATE_MAP = {
   'S': 'Suspendido',
   'C': 'Cancelado'  
 }
+fields = [
+      'id',
+      'idUserCeprunsa',
+      'email',
+      'userNames',
+      'userLastNames',
+      'identityDocument',
+      'idRole',
+      'roleName',
+      'idCourse',
+      'courseName',
+      'registerState'
+      ]
+def generateExcelReportUsersInProcessByRole(users):
+  wb = Workbook()
+  ws = wb.active
+  
+  headers = USER_PROCESS_HEADER
+  ws.append(headers)
+  
+  for user in users:
+    row = [
+      user.get('idUserCeprunsa'),
+      user.get('userNames'),
+      user.get('userLastNames'),
+      user.get('identityDocument'),
+      user.get('email'),
+      user.get('courseName')
+    ]
+    
+    ws.append(row)
+  
+  excelFile = BytesIO()
+  wb.save(excelFile)
+  excelFile.seek(0)
+  
+  return excelFile
+
+
 
 #===============================================================================
 # Function que genera un reporte en formato xlsx de los procesos de la base de datos
@@ -24,7 +73,7 @@ def generateReportProcess(processes):
     'Nombre',
     'Descripción',
     'Año de ingreso',
-    'Año de proceso'
+    'Año de proceso',
     'Fecha de inicio',
     'Fecha de fin',
     'Fechas importantes',
@@ -52,7 +101,7 @@ def generateReportProcess(processes):
     
     ws.append(row)
     
-  from io import BytesIO
+  
   excel_file = BytesIO()
   wb.save(excel_file)
   excel_file.seek(0)

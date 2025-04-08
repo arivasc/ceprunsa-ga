@@ -55,20 +55,66 @@ class UserCeprunsaSimpleListDetailedCreateView(APIView):
       "Antes de usar el primer filtro añadir a la url '?'.\n\n"
       "Formato del filtro = **'?filtro1=valor1&filtro2=valor2&...'**. Todo junto sin espacios.\n\n"
       "\n\nFiltros:\n\n"
-      "- role: ID del rol por el cual filtrar los usuarios (opcional). role=1-6\n\n"
+      "- role: ID del rol por el cual filtrar los usuarios (opcional). role=1-8\n\n"
       "- search: Cadena de búsqueda para filtrar por nombres o apellidos (opcional). search=Pepito\n\n"
       "- process: ID del proceso por el cual filtrar los usuarios no relacionados al proceso (opcional). process=id\n\n"
-      "- notRelated: Filtra los usuarios que no están relacionados con los cursos (opcional)."
-      " Para este filtro tambien añadir el rol a filtrar obligatorio. (4 para coordinador, 5 para subcoord y 6 para servidores de enseñanza). notRelated=true\n\n"
+      "- notRelated: Filtra los usuarios que no están relacionados con los cursos o procesos (opcional)."
+      " Para este filtro tambien añadir el filtro de rol a filtrar obligatorio. (4 para coordinador, 5 para subcoord y 6 para servidores de enseñanza). notRelated=true\n\n"
     ),
     parameters=[
+      
       OpenApiParameter(
         name='role',
+        required=False,
+        description='valores aceptados: 1-8',
         type=str,
+        location='query',
         examples=[
-          OpenApiExample("Filtrar por rol", value="2")
+          OpenApiExample(
+            name='role',
+            value=''
+          )
         ]
-      )
+      ),
+      OpenApiParameter(
+        name='search',
+        required=False,
+        description='Cadena de búsqueda para filtrar por nombres o apellidos ',
+        type=str,
+        location='query',
+        examples=[
+          OpenApiExample(
+            name='search',
+            value=''
+          )
+        ]
+      ),
+      OpenApiParameter(
+        name='process',
+        required=False,
+        description='ID del proceso por el cual filtrar los usuarios no relacionados al proceso',
+        type=str,
+        location='query',
+        examples=[
+          OpenApiExample(
+            name='process',
+            value=''
+          )
+        ]
+      ),
+      OpenApiParameter(
+        name='notRelated',
+        required=False,
+        description='Filtra los usuarios que no están relacionados con los cursos o procesos',
+        type=str,
+        location='query',
+        examples=[
+          OpenApiExample(
+            name='notRelated',
+            value='false'
+          )
+        ]
+      ),
     ],
     responses={
       200: OpenApiExample(

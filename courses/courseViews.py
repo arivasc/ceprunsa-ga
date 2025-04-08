@@ -92,10 +92,18 @@ class CourseTeacherRelationCreateView(APIView):
         if not hasRole:
           errors.append(f'El profesor con id {userId} no tiene el rol de profesor')
           continue
-        relation, created = CourseTeacherRelation.objects.get_or_create(idCourse=course, idTeacher=teacher)
+        relation = CourseTeacherRelation.objects.filter(idTeacher=teacher).exists()
+        
+        if relation:
+          errors.append(f'El profesor con id {userId} ya tiene una relación con un curso')
+          continue
+        else:
+          created = CourseTeacherRelation(idCourse=course, idTeacher=teacher)
+          created.save()
+          #relation, created = CourseTeacherRelation.objects.get_or_create(idCourse=course, idTeacher=teacher)
         
         if created:
-          createdRelations.append(relation)
+          createdRelations.append(created)
         else:
           errors.append(f'El profesor con id {userId} ya tiene una relación con el curso')
         
