@@ -116,7 +116,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
         examples=[
           OpenApiExample(
             name='role',
-            value='4'
+            value=''
           )
         ]
       ),
@@ -129,7 +129,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
         examples=[
           OpenApiExample(
             name='search',
-            value='Juan'
+            value=''
           )
         ]
       ),
@@ -142,7 +142,7 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
         examples=[
           OpenApiExample(
             name='userId',
-            value='4'
+            value=''
           )
         ]
       ),
@@ -170,12 +170,16 @@ class ProcessUserCeprunsaRelationListCreateView(APIView):
     if excel:
       try:
         relations = ProcessUserCeprunsaRelation.objects.filter(idProcess=pk, idRole=role).exclude(registerState='*')
+        if not relations:
+          return Response({'message': 'No hay relaciones para este proceso con los parámetros dados'}, status=status.HTTP_404_NOT_FOUND)
         serializer = ProcessUserCeprunsaRelationsListSerializer(relations, many=True)
         excel_file = generateExcelReportUsersInProcessByRole(serializer.data)
         current_date = timezone.now().strftime("%d-%m-%Y_%H%M%S")
         roleName = ProcessUserCeprunsaRelation.objects.filter(idRole=role).first().idRole.name
+        if role == '6':
+          roleName = 'Servidor de Ense'
         processName = Process.objects.get(id=pk).name
-        filename = f"{roleName} - {processName}_{current_date}.xlsx"
+        filename = f"{roleName} - {processName} _{current_date}.xlsx"
         response = HttpResponse(
           excel_file.getvalue(),
           content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
