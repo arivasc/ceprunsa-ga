@@ -8,13 +8,14 @@ import json
 #================================================================
 class ProcessUserCeprunsaListSerializer(serializers.ModelSerializer):
   processName = serializers.CharField(source='idProcess.name', read_only=True)
+  processRegisterState = serializers.CharField(source='idProcess.registerState', read_only=True)
   class Meta:
     model = ProcessUserCeprunsaRelation
     fields = [
       'id',
       'idProcess',
       'processName',
-      'registerState'
+      'processRegisterState'
       ]
 
 #================================================================
