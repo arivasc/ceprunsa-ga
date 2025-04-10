@@ -66,11 +66,19 @@ class Observation(models.Model):
     on_delete=models.CASCADE,
     db_column='id_process_user_ceprunsa_relation')
   date = models.DateField()
+  lastEditDate = models.DateField(blank=True, null=True, db_column='last_edit_date')
   observation = models.TextField()
   idRegisterBy = models.ForeignKey(
     UserCeprunsa,
     on_delete=models.CASCADE,
+    related_name='register_by',
     db_column='id_register_by')
+  idLastEditedBy = models.ForeignKey(
+    UserCeprunsa,
+    on_delete=models.CASCADE,
+    blank=True, null=True,
+    related_name='last_edited_by',
+    db_column='id_last_edited_by')
   document = models.FileField(upload_to='observations/', blank=True, null=True)
   registerState = models.CharField(max_length=1, default='N', db_column='register_state')
   

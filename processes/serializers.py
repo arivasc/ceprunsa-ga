@@ -28,9 +28,11 @@ class ObservationSerializer(serializers.ModelSerializer):
       'id',
       'idProcessUserCeprunsaRelation',
       'date',
+      'lastEditDate',
       'observation',
       'document',
       'idRegisterBy',
+      'idLastEditedBy',
       'registerState'
       ]
 
@@ -41,6 +43,7 @@ class ObservationSerializer(serializers.ModelSerializer):
 class ObservationDetailSerializer(serializers.ModelSerializer):
   processUserName = serializers.SerializerMethodField()
   namesRegisterBy = serializers.SerializerMethodField()
+  namesLastEditedBy = serializers.SerializerMethodField()
   
   class Meta:
     model = Observation
@@ -49,9 +52,12 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
       'idProcessUserCeprunsaRelation',
       'processUserName',
       'date',
+      'lastEditDate',
       'observation',
       'idRegisterBy',
       'namesRegisterBy',
+      'idLastEditedBy',
+      'namesLastEditedBy',
       'document',
       'registerState'
       ]
@@ -60,6 +66,24 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
     register_by = obj.idRegisterBy
     if register_by and hasattr(register_by, 'userceprunsapersonalinfo'):
       personal_info = register_by.userceprunsapersonalinfo
+      first_name = personal_info.names.split(' ')[0]
+      last_names = personal_info.lastNames.split(' ')
+
+      second_name_initial = (
+          personal_info.names.split(' ')[1][0] + '.'
+          if len(personal_info.names.split(' ')) > 1 else ''
+      )
+      last_name_1 = last_names[0] if len(last_names) > 0 else ''
+      last_name_2_initial = (last_names[1][0] + '.') if len(last_names) > 1 else ''
+
+      formatted_name = f"{first_name} {second_name_initial} {last_name_1} {last_name_2_initial}"
+      return formatted_name
+    return None
+  
+  def get_namesLastEditedBy(self, obj):
+    last_edited_by = obj.idLastEditedBy
+    if last_edited_by and hasattr(last_edited_by, 'userceprunsapersonalinfo'):
+      personal_info = last_edited_by.userceprunsapersonalinfo
       first_name = personal_info.names.split(' ')[0]
       last_names = personal_info.lastNames.split(' ')
 
