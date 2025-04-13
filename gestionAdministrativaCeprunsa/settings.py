@@ -149,7 +149,7 @@ GS_PROJECT_ID = getenv('GS_PROJECT_ID')
 GS_LOCAL = getenv('GS_LOCAL', 'False') == 'True'
 
 if GS_LOCAL:
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(path.join(BASE_DIR, 'credentials/gcs-credentials.json'))
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(path.join(BASE_DIR, 'credentials/gcs_credentials.json'))
 else:
     GS_CREDENTIALS = None
 

@@ -1,6 +1,7 @@
 from processes.serializers import ObservationSerializer, ObservationDetailSerializer
 
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,6 +15,7 @@ from processes.models import Observation
 #===============================================================
 class ObservationListCreateView(APIView):
   #permission_classes = [IsAuthenticated]
+  parser_classes = [MultiPartParser, FormParser]
   
   @extend_schema(
     summary='Listar observaciones',
@@ -54,7 +56,24 @@ class ObservationListCreateView(APIView):
   
   @extend_schema(
     description='Crear una observación',
-    request=ObservationSerializer,
+    request={
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'idProcessUserCeprunsaRelation': {'type': 'integer'},
+                    'date': {'type': 'string', 'format': 'date'},
+                    'lastEditDate': {'type': 'string', 'format': 'date'},
+                    'observation': {'type': 'string'},
+                    'document': {
+                        'type': 'string',
+                        'format': 'binary',  # Esto hace que Swagger muestre el selector de archivos
+                        'description': 'Archivo adjunto'
+                    },
+                    'idRegisterBy': {'type': 'integer'},
+                    'idLastEditedBy': {'type': 'integer'}
+                }
+            }
+        },
     responses=ObservationSerializer
   )
   def post(self, request):

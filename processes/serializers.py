@@ -22,6 +22,10 @@ class ProcessUserCeprunsaListSerializer(serializers.ModelSerializer):
 # ObservationSerializer para crear una observación
 #================================================================
 class ObservationSerializer(serializers.ModelSerializer):
+  document = serializers.FileField(required=False, allow_null=True,
+                                   style={'input_type': 'file_input.html' },  
+        help_text="Sube un documento relacionado"
+    )
   class Meta:
     model = Observation
     fields = [
