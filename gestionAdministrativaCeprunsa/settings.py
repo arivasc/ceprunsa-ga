@@ -71,7 +71,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'gestionAdministrativaCeprunsa.urls'
 
@@ -141,17 +141,60 @@ USE_TZ = True
 
 
 #Google Cloud Storage settings
+#new settings
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = getenv('GS_BUCKET_NAME')
 GS_PROJECT_ID = getenv('GS_PROJECT_ID')
 GS_LOCAL = getenv('GS_LOCAL', 'False') == 'True'
+GS_KEY_PATH = getenv('GS_KEY_PATH', path.join(BASE_DIR, 'credentials/gcs_credentials.json'))
+GS_SA_EMAIL = getenv("GS_SA_EMAIL", None)
 
 if GS_LOCAL:
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(path.join(BASE_DIR, 'credentials/gcs_credentials.json'))
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GS_KEY_PATH)
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {
+                "project_id": GS_PROJECT_ID,
+                "credentials": GS_CREDENTIALS,
+                "bucket_name": GS_BUCKET_NAME,
+            },
+            
+        },
+        "staticfiles": {
+            "BACKEND": 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
 else:
-    GS_CREDENTIALS = None
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {
+                "project_id": GS_PROJECT_ID,
+                "bucket_name": GS_BUCKET_NAME,
+                "iam_sign_blob": True,
+                "default_acl": None,
+                **({"sa_email": GS_SA_EMAIL} if GS_SA_EMAIL else {}),
+            },
+        },
+        "staticfiles": {
+            "BACKEND": 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
+
+#old settings
+#BASE_DIR = Path(__file__).resolve().parent.parent
+
+# DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+# GS_BUCKET_NAME = getenv('GS_BUCKET_NAME')
+# GS_PROJECT_ID = getenv('GS_PROJECT_ID')
+# GS_LOCAL = getenv('GS_LOCAL', 'False') == 'True'
+
+# if GS_LOCAL:
+#     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(path.join(BASE_DIR, 'credentials/gcs_credentials.json'))
+# else:
+#     GS_CREDENTIALS = None
 
 MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
 MEDIA_ROOT = ""

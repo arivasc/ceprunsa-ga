@@ -1,4 +1,4 @@
-from processes.serializers import ObservationSerializer, ObservationDetailSerializer
+from processes.serializers import ObservationSerializer, ObservationDetailSerializer, ObservationDocumentUrlSerializer
 
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -9,6 +9,29 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
 from processes.models import Observation
+
+#===============================================================
+# ObservationDocumentView para ver el documento de la observación
+#===============================================================
+class ObservationDocumentView(APIView):
+  #permission_classes = [IsAuthenticated]
+  
+  @extend_schema(
+    summary='Ver el documento de una observación',
+    description='Ver el documento de una observación por su ID.',
+    responses={200: None}
+  )
+  def get(self, request, pk):
+    try:
+      observation = Observation.objects.get(pk=pk)
+      if observation.document:
+        serializer = ObservationDocumentUrlSerializer(observation)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+      else:
+        return Response({'message': 'No hay documento asociado a esta observación.'}, status=status.HTTP_404_NOT_FOUND)
+    except ObjectDoesNotExist:
+      return Response({'message': 'No se encontró la observación con ese id.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 #===============================================================
 # ObservationView para crear y listar observaciones

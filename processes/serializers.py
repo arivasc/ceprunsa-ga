@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from processes.models import Process, ProcessUserCeprunsaRelation, Observation
+from processes.utils import get_signed_url
 import json
 
 #================================================================
@@ -17,6 +18,27 @@ class ProcessUserCeprunsaListSerializer(serializers.ModelSerializer):
       'processName',
       'processRegisterState'
       ]
+
+#================================================================
+# ObservationDocumentUrlSerializer para obtener y firmar la url
+# de un documento
+#================================================================
+class ObservationDocumentUrlSerializer(serializers.ModelSerializer):
+  documentSignedUrl = serializers.SerializerMethodField()
+
+  class Meta:
+    model = Observation
+    fields = ['id', 'documentSignedUrl']
+
+  def get_documentSignedUrl(self, obj):
+    if obj.document:
+      try:
+        return get_signed_url(obj.document.name)
+      except Exception as e:
+        # En producción, loguear el error
+        return None
+    return None
+
 
 #================================================================
 # ObservationSerializer para crear una observación
@@ -48,6 +70,8 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
   processUserName = serializers.SerializerMethodField()
   namesRegisterBy = serializers.SerializerMethodField()
   namesLastEditedBy = serializers.SerializerMethodField()
+  document = serializers.SerializerMethodField()
+  
   
   class Meta:
     model = Observation
@@ -65,6 +89,9 @@ class ObservationDetailSerializer(serializers.ModelSerializer):
       'document',
       'registerState'
       ]
+  
+  def get_document(self, obj):
+    return bool(obj.document)
   
   def get_namesRegisterBy(self, obj):
     register_by = obj.idRegisterBy
